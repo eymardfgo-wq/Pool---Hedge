@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827"><meta name="description" content="Calculadora Pool de Liquidez e Hedge Delta Neutral">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
+<title>Pool + Hedge</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:20px 14px 40px}
+main{max-width:650px;margin:auto}.head{display:flex;align-items:center;justify-content:space-between;margin:8px 0 18px}.brand{font-weight:800;font-size:21px;letter-spacing:.2px}.tag{font-size:11px;color:#071b16;background:var(--green);padding:6px 9px;border-radius:20px;font-weight:800}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:17px;margin:12px 0;box-shadow:0 10px 30px #0003}.eyebrow{font-size:11px;letter-spacing:1.3px;color:var(--muted);font-weight:700;margin-bottom:12px}
+label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,select{width:100%;background:#0b1525;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;outline:none}input:focus,select:focus{border-color:var(--blue)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choices{display:flex;flex-wrap:wrap;gap:8px}.choices button,.quick button{background:#0b1525;border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px}.choices button.active,.quick button.active{border-color:var(--blue);background:#203757}
+input[type=range]{padding:0;accent-color:var(--green)}.between{display:flex;justify-content:space-between;align-items:center;gap:10px}.big{font-size:28px;font-weight:800;letter-spacing:-.5px}.green{color:var(--green)}.red{color:var(--red)}.muted{color:var(--muted);font-size:12px}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #ffffff10;font-size:14px}.row:last-child{border:0}.result{background:var(--panel2);border-radius:13px;padding:14px;margin-top:10px}.pill{display:inline-block;background:#123b31;color:var(--green);border-radius:20px;padding:5px 9px;font-size:11px;font-weight:800}.warn{background:#42212b;color:#fecdd3}.divider{height:1px;background:var(--line);margin:14px 0}
+button.primary{width:100%;border:0;background:var(--green);color:#062016;font-size:15px;font-weight:800;padding:13px;border-radius:12px;margin-top:12px}
+small{color:var(--muted);line-height:1.5;display:block;margin-top:10px}.footer{text-align:center;color:var(--muted);font-size:11px;padding:16px}
+@media(max-width:390px){body{padding:14px 10px}.panel{padding:14px}.big{font-size:24px}}
+</style>
+</head>
+<body><main>
+<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Liquidez concentrada · Hyperliquid</div></div><span class="tag">SHORT 2X</span></header>
+<section class="panel">
+<div class="eyebrow">1 · CONFIGURAÇÃO DA POOL</div>
+<label>Protocolo</label><div class="choices" id="protocol"><button class="active" data-v="Uniswap V3">Uniswap V3</button><button data-v="Orca">Orca</button></div>
+<label>Capital destinado à Pool (USD)</label><input id="capital" type="number" min="0" value="5000">
+<div class="grid"><div><label>Token volátil</label><input id="token" value="ZEC"></div><div><label>Stablecoin</label><input id="stable" value="USDC"></div></div>
+<label>Preço atual de 1 token (USD)</label><input id="price" type="number" min="0" step="any" value="500">
+<label>APR anual da Pool (%)</label><input id="apr" type="number" step="any" value="127">
+<label>Taxa da Pool</label><div class="choices" id="fee"><button data-v="0.01">0,01%</button><button data-v="0.05">0,05%</button><button class="active" data-v="0.30">0,30%</button><button data-v="1">1%</button></div>
+<label class="between"><span>Amplitude do range</span><strong id="widthLabel">±20%</strong></label><input id="width" type="range" min="5" max="80" step="5" value="20">
+<div class="muted">A faixa é centrada geometricamente no preço atual para começar com composição 50/50 em valor.</div>
+</section>
+<section class="panel">
+<div class="eyebrow">2 · RESULTADO DA MONTAGEM</div><div id="initial"></div>
+</section>
+<section class="panel">
+<div class="eyebrow">3 · SIMULADOR DE REBALANCEAMENTO</div>
+<label class="between"><span>Variação do preço</span><strong id="moveLabel">0%</strong></label><input id="move" type="range" min="-80" max="100" step="5" value="0">
+<div class="choices quick" id="quick"></div><div id="dynamic"></div>
+</section>
+<section class="panel"><div class="eyebrow">OBSERVAÇÕES IMPORTANTES</div>
+<small>• A composição inicial da Pool é 50/50 em valor. O hedge inicial corresponde à quantidade de token volátil na posição.</small>
+<small>• A alavancagem é fixa em 2x; a margem teórica equivale a 50% do valor nocional do short.</small>
+<small>• O APR é uma estimativa constante aplicada ao capital da Pool. Não é garantia e não inclui funding, custos, slippage, impermanent loss ou rebalanceamentos.</small>
+<small>• O cálculo é um modelo matemático de liquidez concentrada. Confirme ticks, token ordering, fee tier e parâmetros da posição na Uniswap/Orca antes de executar.</small>
+<small>• A margem e a liquidação reais dependem das regras, tiers e saldo da conta Hyperliquid. Esta calculadora não envia ordens nem consulta preços em tempo real.</small>
+</section>
+<div class="footer">Pool + Hedge · Ferramenta de simulação, não recomendação financeira.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let protocol='Uniswap V3',fee='0.30';
+function buttons(id,cb){$(id).querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ $(id).querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');cb(b.dataset.v)}))}
+buttons('protocol',v=>{protocol=v;render()});buttons('fee',v=>{fee=v;render()});
+[-50,-30,-20,-10,0,10,20,30,50].forEach(v=>{let b=document.createElement('button');b.textContent=(v>0?'+':'')+v+'%';b.dataset.v=v;if(v===0)b.classList.add('active');$('quick').appendChild(b)});
+buttons('quick',v=>{$('move').value=v;render()});
+['capital','token','stable','price','apr','width','move'].forEach(id=>$(id).addEventListener('input',render));
+function money(v){return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmt(v){return v.toFixed(6)}
+function render(){
+ const C=Math.max(0,Number($('capital').value)||0),P=Math.max(0,Number($('price').value)||0),apr=Number($('apr').value)||0,w=Number($('width').value)/100,mv=Number($('move').value)||0;
+ const T=$('token').value.trim()||'TOKEN',S=$('stable').value.trim()||'STABLE';
+ $('widthLabel').textContent='±'+Math.round(w*100)+'%';$('moveLabel').textContent=(mv>0?'+':'')+mv+'%';
+ if(!C||!P||w<=0||w>=1){$('initial').innerHTML='<span class="pill warn">Informe capital e preço válidos</span>';$('dynamic').innerHTML='';return}
+ const lo=P*(1-w),hi=P/(1-w),a=Math.sqrt(lo),b=Math.sqrt(hi),s=Math.sqrt(P);
+ // Choose liquidity L so token value and quote value are equal at current price.
+ const L=C/(P*(1/s-1/b)+(s-a));
+ function amounts(v){const z=Math.sqrt(v);if(v<=lo)return {x:L*(1/a-1/b),y:0};if(v>=hi)return {x:0,y:L*(b-a)};return {x:L*(1/z-1/b),y:L*(z-a)}}
+ const start=amounts(P),startN=start.x,notional=startN*P,margin=notional/2;
+ $('initial').innerHTML=`
+ <span class="pill">POOL INICIAL 50/50</span>
+ <div class="result"><div class="big">$${money(C)}</div><div class="muted">Capital aplicado na Pool</div>
+ <div class="row"><span>${T} na Pool</span><b>${fmt(start.x)} · $${money(C/2)}</b></div>
+ <div class="row"><span>${S} na Pool</span><b>$${money(C/2)}</b></div></div>
+ <div class="divider"></div><div class="muted">RANGE CALCULADO · ${S} por ${T}</div><div class="big">${money(lo)} – ${money(hi)}</div>
+ <div class="divider"></div><span class="pill">SHORT INICIAL · 2X</span><div class="big green">${fmt(startN)} ${T}</div>
+ <div class="row"><span>Valor nocional do short</span><b>$${money(notional)}</b></div><div class="row"><span>Margem teórica a 2x</span><b>$${money(margin)}</b></div>
+ <div class="row"><span>Capital total (Pool + margem)</span><b>$${money(C+margin)}</b></div>
+ <div class="divider"></div><div class="muted">RECEITA TEÓRICA DA POOL, COM APR CONSTANTE</div>
+ <div class="row"><span>Por dia</span><b>$${money(C*apr/36500)}</b></div><div class="row"><span>Por 30 dias</span><b>$${money(C*apr/100/12)}</b></div><div class="row"><span>Por ano</span><b>$${money(C*apr/100)}</b></div>`;
+ const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN,newNotional=newShort*newP,newMargin=newNotional/2,inside=newP>=lo&&newP<=hi;
+ let action=adj>1e-9?`<span class="pill">AUMENTAR SHORT</span><div class="big green">Vender ${fmt(adj)} ${T}</div>`:adj< -1e-9?`<span class="pill warn">REDUZIR SHORT</span><div class="big red">Recomprar ${fmt(Math.abs(adj))} ${T}</div>`:`<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>`;
+ $('dynamic').innerHTML=`<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$${money(newP)}</div><span class="pill ${inside?'':'warn'}">${inside?'DENTRO DO RANGE':'FORA DO RANGE'}</span>
+ <div class="divider"></div><div class="row"><span>Quantidade de ${T} na Pool</span><b>${fmt(now.x)}</b></div><div class="row"><span>Valor em ${S}</span><b>$${money(now.y)}</b></div><div class="row"><span>Valor estimado da Pool</span><b>$${money(now.x*newP+now.y)}</b></div>
+ <div class="divider"></div><div class="muted">NOVO SHORT PARA DELTA NEUTRO</div><div class="big green">${fmt(newShort)} ${T}</div><div class="row"><span>Nocional do short</span><b>$${money(newNotional)}</b></div><div class="row"><span>Margem teórica a 2x</span><b>$${money(newMargin)}</b></div>
+ <div class="divider"></div>${action}<div class="muted">Ajuste calculado em relação ao short inicial, supondo que nenhum rebalanceamento anterior tenha sido feito.</div></div>`;
+}
+render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>

@@ -1,0 +1,17 @@
+POOL + HEDGE — PWA
+===================
+Arquivos:
+- index.html: calculadora independente
+- manifest.webmanifest: configuração instalável
+- sw.js: cache/offline
+- icon-192.png e icon-512.png: ícones
+
+INSTALAÇÃO COMO ATALHO/APLICATIVO:
+1. Publique todos os arquivos desta pasta em um endereço HTTPS (por exemplo, GitHub Pages ou outro host estático).
+2. Abra o endereço no Chrome do Android.
+3. Menu ⋮ > Instalar app (ou Adicionar à tela inicial, conforme a versão do Chrome).
+4. Confirme. O ícone Pool Hedge aparecerá na tela inicial.
+
+IMPORTANTE:
+Abrir o index.html diretamente pelo gerenciador de arquivos não instala um PWA. Para instalação e funcionamento offline, é necessário servir os arquivos por HTTPS.
+A calculadora não consulta preços, não conecta carteiras e não envia ordens.
