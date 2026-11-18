@@ -1,5 +1,5 @@
-const CACHE = 'pool-hedge-v1';
 
+const CACHE = 'pool-hedge-v2';
 const ASSETS = [
   './',
   './index.html',
