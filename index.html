@@ -87,7 +87,7 @@ function render(){
  const mv=Number($('move').value)||0,f=Number($('allocation').value)/100;
  const lev=Math.max(0,Number($('leverage').value)||0),fund=Number($('funding').value)||0;
  const cost=Math.max(0,Number($('monthlyCosts').value)||0),one=Math.max(0,Number($('oneTimeCosts').value)||0);
- const T=$('token').value.trim()||'TOKEN',S=$('stable').value.trim()||'STABLE';
+ const T=$('token').value.trim()||'TOKEN',S=$('stable').value.trim()||'STABLE';$('shortTokenLabel').textContent=T;
  $('widthLabel').textContent='±'+Math.round(w*100)+'%';$('moveLabel').textContent=(mv>0?'+':'')+mv+'%';
  $('allocationLabel').textContent=Math.round(f*100)+'%';
  $('tokenAllocation').textContent=T+': $'+money(C*f);$('stableAllocation').textContent=S+': $'+money(C*(1-f));
@@ -131,7 +131,7 @@ function render(){
  $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$'+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
  '<div class="divider"></div><div class="row"><span>'+T+' na Pool</span><b>'+qty(now.x)+'</b></div><div class="row"><span>Valor em '+S+'</span><b>$'+money(now.y)+'</b></div><div class="row"><span>Valor estimado da Pool</span><b>$'+money(now.x*newP+now.y)+'</b></div>'+
  '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="row"><span>Nocional do short alvo</span><b>$'+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>$'+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="row"><span>Short real informado</span><b>'+qty(actualShort)+' '+T+'</b></div><div class="row"><span>Ajuste calculado vs. short real</span><b class="'+(!hasActualShort?'red':Math.abs(adj)<1e-9?'green':adj>0?'green':'red')+'">'+(hasActualShort?(adj>0?'+':'')+qty(adj)+' '+T:'Aguardando dado')+'</b></div>'+(hasActualShort?'<div class="hint">Sugestão calculada comparando o short-alvo da Pool com a posição real informada. Confirme o tamanho da posição na Hyperliquid antes de executar.</div>':'')+'</div>';
+ '<div class="row"><span>Short real informado</span><b>'+(hasActualShort?qty(actualShort)+' '+T:'Não informado')+'</b></div><div class="row"><span>Ajuste calculado vs. short real</span><b class="'+(!hasActualShort?'red':Math.abs(adj)<1e-9?'green':adj>0?'green':'red')+'">'+(hasActualShort?(adj>0?'+':'')+qty(adj)+' '+T:'Aguardando dado')+'</b></div>'+(hasActualShort?'<div class="hint">Sugestão calculada comparando o short-alvo da Pool com a posição real informada. Confirme o tamanho da posição na Hyperliquid antes de executar.</div>':'')+'</div>';
 }
 render();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
