@@ -1,157 +1,163 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101827">
-<meta name="description" content="Pool + Hedge V5.3 - assistente de montagem de hedge de liquidez concentrada e hedge delta neutral">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827"><meta name="description" content="Pool + Hedge - cálculo de hedge inicial e rebalanceamento sugerido">
 <title>Pool + Hedge V5.3</title>
 <style>
-:root{color-scheme:dark;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:16px 12px 36px}
-main{max-width:700px;margin:auto}.head{display:flex;align-items:center;justify-content:space-between;margin:8px 0 18px}.brand{font-weight:800;font-size:22px}.tag{font-size:11px;color:#071b16;background:var(--green);padding:6px 9px;border-radius:20px;font-weight:800}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 10px 30px #0003}.eyebrow{font-size:11px;letter-spacing:1.2px;color:var(--muted);font-weight:800;margin-bottom:12px}
-label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,select{width:100%;background:#0b1525;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px;font-size:16px;outline:none}input:focus,select:focus{border-color:var(--blue)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choices{display:flex;flex-wrap:wrap;gap:8px}.choices button,.quick button{background:#0b1525;border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;font-size:14px}
-.choices button.active,.quick button.active{border-color:var(--blue);background:#203757}input[type=range]{padding:0;accent-color:var(--green)}
-.between{display:flex;justify-content:space-between;align-items:center;gap:10px}.big{font-size:27px;font-weight:800;letter-spacing:-.5px}.green{color:var(--green)}.red{color:var(--red)}.muted{color:var(--muted);font-size:12px}
-.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #ffffff10;font-size:14px}.row:last-child{border:0}.result{background:var(--panel2);border-radius:12px;padding:13px;margin-top:10px}
-.pill{display:inline-block;background:#123b31;color:var(--green);border-radius:20px;padding:5px 9px;font-size:11px;font-weight:800}.warn{background:#42212b;color:#fecdd3}.divider{height:1px;background:var(--line);margin:13px 0}.hint{color:var(--muted);font-size:12px;line-height:1.5;margin-top:8px}
-.footer{text-align:center;color:var(--muted);font-size:11px;padding:16px}
-@media(max-width:390px){body{padding:12px 9px}.panel{padding:13px}.big{font-size:23px}.grid{gap:8px}}
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:14px 11px 34px}main{max-width:700px;margin:auto}
+.head{display:flex;align-items:center;justify-content:space-between;margin:8px 0 18px;gap:8px}.brand{font-weight:800;font-size:22px}.tag,.pill{font-size:11px;color:#071b16;background:var(--green);padding:6px 9px;border-radius:20px;font-weight:800;white-space:nowrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 10px 30px #0003}.eyebrow{font-size:11px;letter-spacing:1.1px;color:var(--muted);font-weight:800;margin-bottom:12px}
+label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,select{width:100%;background:#0b1525;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px;font-size:16px;outline:none;min-width:0}input:focus,select:focus{border-color:var(--blue)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choices{display:flex;flex-wrap:wrap;gap:8px}.choices button{background:#0b1525;border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;font-size:14px}.choices button.active{border-color:var(--blue);background:#203757}
+.big{font-size:28px;font-weight:800;letter-spacing:-.5px}.green{color:var(--green)}.red{color:var(--red)}.muted,.hint{color:var(--muted);font-size:12px;line-height:1.5}.hint{margin-top:8px}.row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid #ffffff10;font-size:14px}.row:last-child{border:0}.row b{text-align:right}.result{background:var(--panel2);border-radius:12px;padding:13px;margin-top:10px}.divider{height:1px;background:var(--line);margin:14px 0}.warn{background:#42212b;color:#fecdd3}.subvalue{font-size:11px;color:var(--muted);font-weight:400}.fixed{background:#0b1525;border:1px solid var(--line);border-radius:10px;padding:11px;font-weight:800}
+details summary{cursor:pointer;color:var(--text);font-weight:700;padding:4px 0}details .hint{margin-bottom:8px}.footer{text-align:center;color:var(--muted);font-size:11px;padding:16px}
+@media(max-width:390px){body{padding:10px 8px}.panel{padding:12px}.big{font-size:24px}.grid{gap:8px}}
 </style>
 </head>
 <body><main>
-<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Assistente de montagem de hedge · V5.3</div></div><span class="tag">SUGGEST · MANUAL</span></header>
+<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Hedge inicial e rebalanceamento · V5.3</div></div><span class="tag">SUGGEST · MANUAL</span></header>
 
 <section class="panel">
-<div class="eyebrow">1 · CONFIGURAÇÃO DA POOL</div>
+<div class="eyebrow">1 · DADOS DA POOL</div>
 <label>Protocolo</label><div class="choices" id="protocol"><button class="active" data-v="Uniswap">Uniswap</button><button data-v="Orca">Orca</button></div>
-<label>Capital aplicado na Pool (USD)</label><input id="capital" type="number" min="0" step="any" value="5000">
-<div class="grid"><div><label>Token volátil</label><input id="token" value="ZEC"></div><div><label>Stablecoin</label><input id="stable" value="USDC"></div></div>
-<label>Preço atual do token (USD)</label><input id="price" type="number" min="0" step="any" value="500">
-<div class="grid"><div><label>Quantidade de <span class="tokenName">ZEC</span> na Pool</label><input id="poolTokenQty" type="number" min="0" step="any" value="5"><div class="hint" id="poolTokenUsd">Equivalente: US$ 2.500,00</div></div><div><label>Quantidade de <span class="stableName">USDC</span> na Pool</label><input id="poolStableQty" type="number" min="0" step="any" value="2500"><div class="hint" id="poolStableUsd">Equivalente: US$ 2.500,00</div></div></div>
-<div class="grid"><div><label>Preço mínimo do range (USD)</label><input id="rangeMin" type="number" min="0" step="any" value="400"></div><div><label>Preço máximo do range (USD)</label><input id="rangeMax" type="number" min="0" step="any" value="600"></div></div>
-<div class="grid"><div><label>APR estimado da Pool (%)</label><input id="apr" type="number" min="0" step="any" value="127"></div><div><label>Fee tier / taxa da Pool</label><input id="feeTier" type="text" value="0.30%" placeholder="Ex.: 0.05%, 0.3%, 1%, Adaptive"></div></div>
-<div class="hint">Informe as quantidades reais exibidas pela DEX e os limites reais da posição. O aplicativo usa esses dados para calcular o hedge inicial e estimar como a exposição muda com o preço.</div>
+<div class="grid"><div><label>Token volátil</label><input id="token" value="ZEC" autocomplete="off"></div><div><label>Stablecoin</label><input id="stable" value="USDC" autocomplete="off"></div></div>
+<label>Preço atual do token volátil (USD)</label><input id="price" type="number" min="0" step="any" value="100">
+<div class="grid"><div><label>Valor do token volátil na Pool (USD)</label><input id="tokenUsd" type="number" min="0" step="any" value="600"></div><div><label>Valor da stablecoin na Pool (USD)</label><input id="stableUsd" type="number" min="0" step="any" value="400"></div></div>
+<div class="grid"><div><label>Preço mínimo do range (USD)</label><input id="rangeMin" type="number" min="0" step="any" value="80"></div><div><label>Preço máximo do range (USD)</label><input id="rangeMax" type="number" min="0" step="any" value="120"></div></div>
+<div class="grid"><div><label>APR estimado da Pool (%)</label><input id="apr" type="number" min="0" step="any" value="30"></div><div><label>Taxa / fee tier</label><input id="feeTier" type="text" value="0,30%" placeholder="Ex.: 0,05%, 0,3%, 1%, Adaptive"></div></div>
+<div class="hint">Informe os valores atuais dos dois ativos em USD, não quantidades de tokens. O aplicativo converte os valores em quantidades automaticamente.</div>
 </section>
 
 <section class="panel">
-<div class="eyebrow">2 · CONFIGURAÇÃO DO HEDGE E CUSTOS</div>
-<div class="grid"><div><label>Alavancagem do short (x)</label><input id="leverage" type="number" min="1" step="0.1" value="2"></div><div><label>Funding líquido por dia (USD)</label><input id="funding" type="number" step="any" value="0"></div></div>
-<label>Quantidade atual do short real (<span id="shortTokenLabel">token</span>)</label><input id="actualShort" type="number" min="0" step="any" placeholder="Informe o short aberto na Hyperliquid"><div class="hint">Informe a quantidade total atualmente aberta na Hyperliquid. Use 0 se não houver short. <span id="actualShortUsd">Equivalente: US$ 0,00</span>. O aplicativo compara essa posição com o hedge-alvo.</div>
-<div class="hint">Funding positivo = recebido; funding negativo = pago. Informe a média diária observada, com sinal.</div>
-<div class="grid"><div><label>Custos operacionais por mês (USD)</label><input id="monthlyCosts" type="number" min="0" step="any" value="0"></div><div><label>Outros custos já pagos (USD)</label><input id="oneTimeCosts" type="number" min="0" step="any" value="0"></div></div>
-<div class="hint">Inclua estimativas de taxas de negociação, gas e slippage nos custos mensais. Custos já pagos aparecem separadamente e não alteram o ponto de equilíbrio recorrente.</div>
+<div class="eyebrow">2 · HEDGE INICIAL RECOMENDADO</div>
+<div class="result" id="initial"><span class="muted">Preencha os dados da Pool para calcular o hedge inicial.</span></div>
+<div class="hint">A alavancagem é fixa em 2x. O aplicativo calcula o nocional do SHORT a partir da exposição ao token volátil e estima a margem necessária. Não envia ordens.</div>
 </section>
-
-<section class="panel"><div class="eyebrow">3 · RESULTADO E VIABILIDADE</div><div id="initial"></div></section>
 
 <section class="panel">
-<div class="eyebrow">4 · SUGESTÃO DE REBALANCEAMENTO</div>
-<label class="between"><span>Variação simulada do preço</span><strong id="moveLabel">0%</strong></label>
-<input id="move" type="range" min="-80" max="100" step="5" value="0">
-<div class="choices quick" id="quick"></div><div id="dynamic"></div>
-<div class="hint">Modo Suggest: o aplicativo calcula o ajuste sugerido, mas não envia ordens. A comparação é feita contra a quantidade atual do short real informada na seção 2. Após executar um rebalanceamento, atualize esse campo com a nova posição da Hyperliquid.</div>
+<div class="eyebrow">3 · REBALANCEAMENTO SUGERIDO</div>
+<div class="grid"><div><label>Preço simulado do token (USD)</label><input id="simPrice" type="number" min="0" step="any" value="100"></div><div><label>SHORT atualmente aberto (USD)</label><input id="currentShortUsd" type="number" min="0" step="any" value="0"></div></div>
+<div class="hint">O SHORT atual é opcional. Informe o nocional atual em USD para o aplicativo calcular quanto aumentar ou reduzir. Se ainda não abriu a operação, deixe US$ 0.</div>
+<div id="rebalance" class="result"></div>
+<div class="hint">Quando a composição da Pool mudar, atualize o preço e o nocional atual do SHORT. O aplicativo recalcula a recomendação. O ajuste é sempre uma sugestão manual.</div>
 </section>
 
-<section class="panel"><div class="eyebrow">PREMISSAS E LIMITAÇÕES</div>
-<div class="hint">• Dados e preços são inseridos manualmente; não há conexão com carteiras, DEXs ou Hyperliquid.</div>
-<div class="hint">• O APR é tratado como constante para fins de projeção. A taxa/fee tier é apenas informativa e não calcula o APR.</div>
-<div class="hint">• Projeções padronizadas: 30 dias = resultado diário × 30; ano = resultado diário × 365. Custos mensais são convertidos pela base de 30 dias.</div>
-<div class="hint">• O hedge inicial usa a quantidade real do token volátil informada. A simulação de rebalanceamento estima a composição futura a partir do range e das quantidades informadas; confirme na DEX antes de executar.</div>
-<div class="hint">• A margem é uma estimativa simples: nocional dividido pela alavancagem. Reserve margem adicional e confira as regras de margem e liquidação da Hyperliquid.</div>
+<section class="panel">
+<div class="eyebrow">4 · RENTABILIDADE DA OPERAÇÃO</div>
+<div class="grid"><div><label>Funding acumulado desde a abertura (USD)</label><input id="fundingAccum" type="number" step="any" value="0"></div><div><label>Data e hora de abertura do SHORT</label><input id="openedAt" type="datetime-local"></div></div>
+<div class="hint">Informe o funding acumulado, com sinal: positivo se recebeu, negativo se pagou. O aplicativo calcula a média diária pelo tempo decorrido; não interprete o acumulado como valor diário.</div>
+<details><summary>Custos e ajustes avançados (opcional)</summary>
+<div class="grid"><div><label>Custos recorrentes por mês (USD)</label><input id="monthlyCosts" type="number" min="0" step="any" value="0"></div><div><label>Custos únicos já pagos (USD)</label><input id="oneTimeCosts" type="number" min="0" step="any" value="0"></div></div>
+<div class="hint">Inclua gas, taxas de negociação, slippage e outros custos. Informe tudo em USD.</div>
+</details>
+<div id="profit" class="result"></div>
 </section>
-<div class="footer">Pool + Hedge V5.3 · Assistente de montagem do hedge, não recomendação financeira.</div>
+
+<section class="panel"><div class="eyebrow">PREMISSAS IMPORTANTES</div>
+<div class="hint">• O hedge inicial busca neutralizar 100% da exposição direcional atual ao token volátil da Pool, usando o valor informado e o preço atual.</div>
+<div class="hint">• A simulação do range estima a composição futura de uma posição de liquidez concentrada. Os valores informados dos dois ativos precisam ser compatíveis com o preço e o range; divergências serão sinalizadas.</div>
+<div class="hint">• Alavancagem fixa em 2x. Margem teórica = nocional do SHORT ÷ 2. Reserve margem adicional; 2x não elimina risco de liquidação.</div>
+<div class="hint">• Hedge neutraliza a exposição direcional estimada naquele momento, mas não elimina riscos de impermanent loss, funding, liquidação, execução, smart contract ou divergência entre DEX e Hyperliquid.</div>
+<div class="hint">• Dados são manuais. APR e funding variam; projeções não garantem resultados. Confirme os valores na DEX e na Hyperliquid antes de operar.</div>
+</section>
+<div class="footer">Pool + Hedge V5.3 · Ferramenta de cálculo e sugestão manual, não recomendação financeira.</div>
 </main>
-
 <script>
 const $=id=>document.getElementById(id);
+const LEVERAGE=2;
 let protocol='Uniswap';
+function num(id){return Number($(id).value)||0}
 function money(v){return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function qty(v){return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:6})}
+function tokenNames(){return {t:$('token').value.trim()||'TOKEN',s:$('stable').value.trim()||'STABLE'}}
 function bindChoices(id,cb){$(id).querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$(id).querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');cb(b.dataset.v)}))}
 bindChoices('protocol',v=>{protocol=v;render()});
-[-50,-30,-20,-10,0,10,20,30,50].forEach(v=>{const b=document.createElement('button');b.textContent=(v>0?'+':'')+v+'%';b.dataset.v=v;if(v===0)b.classList.add('active');$('quick').appendChild(b)});
-bindChoices('quick',v=>{$('move').value=v;render()});
-['capital','token','stable','price','poolTokenQty','poolStableQty','rangeMin','rangeMax','apr','feeTier','leverage','funding','actualShort','monthlyCosts','oneTimeCosts','move'].forEach(id=>$(id).addEventListener('input',render));
-
-function render(){
- const C=Math.max(0,Number($('capital').value)||0),P=Math.max(0,Number($('price').value)||0);
- const qToken=Math.max(0,Number($('poolTokenQty').value)||0),qStable=Math.max(0,Number($('poolStableQty').value)||0);
- const lo=Number($('rangeMin').value)||0,hi=Number($('rangeMax').value)||0;
- const apr=Math.max(0,Number($('apr').value)||0),mv=Number($('move').value)||0;
- const lev=Math.max(0,Number($('leverage').value)||0),fund=Number($('funding').value)||0;
- const cost=Math.max(0,Number($('monthlyCosts').value)||0),one=Math.max(0,Number($('oneTimeCosts').value)||0);
- const T=$('token').value.trim()||'TOKEN',S=$('stable').value.trim()||'STABLE';
- $('shortTokenLabel').textContent=T;
- document.querySelectorAll('.tokenName').forEach(e=>e.textContent=T);document.querySelectorAll('.stableName').forEach(e=>e.textContent=S);
- $('poolTokenUsd').textContent='Equivalente: US$ '+money(qToken*P);
- $('poolStableUsd').textContent='Equivalente: US$ '+money(qStable);
- $('moveLabel').textContent=(mv>0?'+':'')+mv+'%';
- const actualRaw=$('actualShort').value.trim(),actualValid=actualRaw!==''&&Number.isFinite(Number(actualRaw))&&Number(actualRaw)>=0;
- const actual=actualValid?Number(actualRaw):0;
- $('actualShortUsd').textContent='Equivalente: US$ '+money(actual*P);
- if(!C||!P||!lev||lo<=0||hi<=lo||!qToken&&!qStable){
-  $('initial').innerHTML='<span class="pill warn">Informe capital, preço, quantidades e range válidos</span>';$('dynamic').innerHTML='';return;
+['token','stable','price','tokenUsd','stableUsd','rangeMin','rangeMax','apr','feeTier','simPrice','currentShortUsd','fundingAccum','openedAt','monthlyCosts','oneTimeCosts'].forEach(id=>$(id).addEventListener('input',render));
+function poolModel(){
+ const P=num('price'),xUsd=num('tokenUsd'),yUsd=num('stableUsd'),lo=num('rangeMin'),hi=num('rangeMax');
+ const valid=P>0&&xUsd>=0&&yUsd>=0&&(xUsd+yUsd)>0&&lo>0&&hi>lo;
+ if(!valid)return {valid:false};
+ const x=xUsd/P,inside=P>lo&&P<hi,atOrBelow=P<=lo,atOrAbove=P>=hi;
+ let L=0,mismatch=0,warning='';
+ const sp=Math.sqrt(P),sl=Math.sqrt(lo),sh=Math.sqrt(hi);
+ if(inside){
+  const lx=x>0?(x/(1/sp-1/sh)):0;
+  const ly=yUsd>0?(yUsd/(sp-sl)):0;
+  if(lx>0&&ly>0){L=(lx+ly)/2;mismatch=Math.abs(lx-ly)/Math.max(lx,ly)*100;}
+  else L=lx||ly;
+  if(mismatch>5)warning='Os valores USD informados para os dois ativos parecem incompatíveis com o range (diferença estimada de liquidez '+money(mismatch)+'%). Confira os dados na DEX.';
+ }else if(atOrBelow){
+  L=x>0?x/(1/sl-1/sh):0;
+  if(yUsd>0)warning='O preço atual está no limite inferior ou abaixo do range, mas foi informado saldo de stablecoin. Confira a posição na DEX.';
+ }else{
+  L=yUsd>0?yUsd/(sh-sl):0;
+  if(xUsd>0)warning='O preço atual está no limite superior ou acima do range, mas foi informado saldo do token volátil. Confira a posição na DEX.';
  }
- // Liquidity estimate inferred from the entered token amounts and the actual range.
- const sqrtP=Math.sqrt(P),sqrtLo=Math.sqrt(lo),sqrtHi=Math.sqrt(hi);
- let estimates=[];
- if(P<=lo){if(qToken>0)estimates.push(qToken/(1/sqrtLo-1/sqrtHi));}
- else if(P>=hi){if(qStable>0)estimates.push(qStable/(sqrtHi-sqrtLo));}
- else{
-  const denomX=1/sqrtP-1/sqrtHi,denomY=sqrtP-sqrtLo;
-  if(qToken>0&&denomX>0)estimates.push(qToken/denomX);
-  if(qStable>0&&denomY>0)estimates.push(qStable/denomY);
- }
- const L=estimates.length?estimates.reduce((a,b)=>a+b,0)/estimates.length:0;
  function amounts(price){
-  if(!L)return{x:0,y:0};
+  if(!(L>0)||!(price>0))return {x:0,y:0};
   const z=Math.sqrt(price);
-  if(price<=lo)return{x:L*(1/sqrtLo-1/sqrtHi),y:0};
-  if(price>=hi)return{x:0,y:L*(sqrtHi-sqrtLo)};
-  return{x:L*(1/z-1/sqrtHi),y:L*(z-sqrtLo)};
+  if(price<=lo)return {x:L*(1/sl-1/sh),y:0};
+  if(price>=hi)return {x:0,y:L*(sh-sl)};
+  return {x:L*(1/z-1/sh),y:L*(z-sl)};
  }
- const poolValue=qToken*P+qStable,notional=qToken*P,margin=notional/lev;
- const poolDaily=C*apr/36500,poolMonthly=poolDaily*30,poolAnnual=poolDaily*365;
- const dailyCosts=cost/30,netDaily=poolDaily+fund-dailyCosts,netMonthly=netDaily*30,netAnnual=netDaily*365;
- const breakEven=Math.max(0,(dailyCosts-fund)*365/C*100);
- const fee=$('feeTier').value.trim()||'não informada';
- const inRange=P>=lo&&P<=hi;
- $('initial').innerHTML=
- '<span class="pill">'+protocol.toUpperCase()+' · FEE '+fee+'</span>'+
- '<div class="result"><div class="big">US$ '+money(poolValue)+'</div><div class="muted">Valor atual calculado pelos ativos informados</div>'+
- '<div class="row"><span>'+T+' na Pool</span><b>'+qty(qToken)+' '+T+'<div class="muted">US$ '+money(qToken*P)+'</div></b></div>'+
- '<div class="row"><span>'+S+' na Pool</span><b>'+qty(qStable)+' '+S+'<div class="muted">US$ '+money(qStable)+'</div></b></div>'+
- '<div class="row"><span>Capital informado</span><b>US$ '+money(C)+'</b></div><div class="row"><span>Diferença entre capital e ativos</span><b>US$ '+money(poolValue-C)+'</b></div></div>'+
- '<div class="divider"></div><div class="muted">RANGE DA POSIÇÃO · '+S+' POR '+T+'</div><div class="big">US$ '+money(lo)+' – US$ '+money(hi)+'</div>'+
- '<div class="muted">'+(inRange?'Preço atual dentro do range':'Preço atual fora do range')+'</div>'+
- '<div class="divider"></div><span class="pill">SHORT INICIAL SUGERIDO · DELTA NEUTRO</span><div class="big green">'+qty(qToken)+' '+T+'</div><div class="muted">Equivalente: US$ '+money(notional)+'</div>'+
- '<div class="row"><span>Nocional do SHORT</span><b>US$ '+money(notional)+'</b></div><div class="row"><span>Alavancagem escolhida</span><b>'+money(lev)+'x</b></div><div class="row"><span>Margem teórica necessária</span><b>US$ '+money(margin)+'</b></div><div class="row"><span>Capital da Pool + margem</span><b>US$ '+money(C+margin)+'</b></div>'+
- '<div class="hint">O hedge inicial usa a quantidade real de '+T+' informada na Pool. A margem é uma estimativa simples (nocional ÷ alavancagem), não inclui margem de segurança nem regras de liquidação da corretora.</div>'+
- '<div class="divider"></div><div class="muted">RESULTADOS ESPERADOS · APR CONSTANTE</div>'+
- '<div class="row"><span>Taxas estimadas da Pool / dia</span><b>US$ '+money(poolDaily)+'</b></div><div class="row"><span>Funding líquido / dia</span><b class="'+(fund>=0?'green':'red')+'">US$ '+money(fund)+'</b></div><div class="row"><span>Custos recorrentes / dia</span><b>US$ '+money(dailyCosts)+'</b></div>'+
- '<div class="row"><span>Resultado líquido estimado / dia</span><b class="'+(netDaily>=0?'green':'red')+'">US$ '+money(netDaily)+'</b></div><div class="row"><span>Resultado líquido / 30 dias</span><b class="'+(netMonthly>=0?'green':'red')+'">US$ '+money(netMonthly)+'</b></div><div class="row"><span>Resultado líquido / ano</span><b class="'+(netAnnual>=0?'green':'red')+'">US$ '+money(netAnnual)+'</b></div>'+
- '<div class="row"><span>Retorno diário sobre Pool + margem</span><b>'+money((C+margin)>0?netDaily/(C+margin)*100:0)+'%</b></div><div class="row"><span>Retorno em 30 dias</span><b>'+money((C+margin)>0?netMonthly/(C+margin)*100:0)+'%</b></div><div class="row"><span>Retorno anual</span><b>'+money((C+margin)>0?netAnnual/(C+margin)*100:0)+'%</b></div>'+
- '<div class="divider"></div><div class="muted">APR MÍNIMO DE EQUILÍBRIO</div><div class="big '+(apr>=breakEven?'green':'red')+'">'+money(breakEven)+'%</div>'+
- '<div class="row"><span>Funding projetado / ano</span><b>US$ '+money(fund*365)+'</b></div><div class="row"><span>Custos recorrentes / ano</span><b>US$ '+money(dailyCosts*365)+'</b></div><div class="row"><span>Outros custos já pagos</span><b>US$ '+money(one)+'</b></div>'+
- '<div class="hint">'+(apr>=breakEven?'APR informado acima':'APR informado abaixo')+' do ponto de equilíbrio estimado. Projeções não garantem taxas futuras; o APR e o funding podem variar.</div>';
- const newP=P*(1+mv/100),now=amounts(newP);
- // At the current price, use the exact entered token amount as the target.
- const newShort=mv===0?qToken:now.x,delta=newShort-actual;
- const newNotional=newShort*newP,newMargin=newNotional/lev,inside=newP>=lo&&newP<=hi;
- let action=!actualValid?'<span class="pill warn">INFORME O SHORT REAL</span><div class="hint">Digite a quantidade atualmente aberta na Hyperliquid para o app calcular quanto aumentar ou reduzir.</div>':
- delta>1e-8?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(delta)+' '+T+'</div><div class="muted">Equivalente: US$ '+money(delta*newP)+'</div>':
- delta< -1e-8?'<span class="pill warn">SUGESTÃO · REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(delta))+' '+T+'</div><div class="muted">Equivalente: US$ '+money(Math.abs(delta)*newP)+'</div>':
- '<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>';
- $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">US$ '+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
- '<div class="divider"></div><div class="row"><span>'+T+' estimado na Pool</span><b>'+qty(now.x)+' '+T+'<div class="muted">US$ '+money(now.x*newP)+'</div></b></div><div class="row"><span>'+S+' estimado na Pool</span><b>'+qty(now.y)+' '+S+'<div class="muted">US$ '+money(now.y)+'</div></b></div><div class="row"><span>Valor estimado da Pool</span><b>US$ '+money(now.x*newP+now.y)+'</b></div>'+
- '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="muted">Equivalente: US$ '+money(newNotional)+'</div><div class="row"><span>Nocional do SHORT alvo</span><b>US$ '+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>US$ '+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="row"><span>Short real informado</span><b>'+ (actualValid?qty(actual)+' '+T+'<div class="muted">US$ '+money(actual*newP)+'</div>':'Não informado')+'</b></div><div class="row"><span>Ajuste calculado</span><b>'+(actualValid?qty(Math.abs(delta))+' '+T+'<div class="muted">US$ '+money(Math.abs(delta)*newP)+'</div>':'Aguardando dado')+'</b></div>'+
- '<div class="hint">A simulação de rebalanceamento estima a mudança da composição da liquidez concentrada a partir das quantidades, preço e limites informados. Confira a composição real na DEX antes de executar.</div></div>';
+ return {valid:true,P,xUsd,yUsd,x,yUsdTotal:xUsd+yUsd,lo,hi,L,mismatch,warning,inside,amounts};
+}
+function fundingPerDay(){
+ const accum=num('fundingAccum'),raw=$('openedAt').value;
+ if(!raw)return {daily:0,days:0,ready:false};
+ const start=new Date(raw).getTime(),days=(Date.now()-start)/86400000;
+ if(!Number.isFinite(start)||days<=0)return {daily:0,days:0,ready:false};
+ return {daily:accum/days,days,ready:true};
+}
+function render(){
+ const n=tokenNames(),m=poolModel(),sim=num('simPrice')||num('price'),apr=Math.max(0,num('apr')),monthlyCosts=Math.max(0,num('monthlyCosts')),oneTime=Math.max(0,num('oneTimeCosts'));
+ if(!m.valid){
+  $('initial').innerHTML='<span class="pill warn">Preencha os valores da Pool e um range válido.</span>';
+  $('rebalance').innerHTML='Aguardando dados válidos da Pool.';$('profit').innerHTML='Aguardando dados da Pool.';return;
+ }
+ const initialQty=m.x,initialUsd=initialQty*m.P,initialMargin=initialUsd/LEVERAGE;
+ const inRange=m.P>=m.lo&&m.P<=m.hi;
+ $('initial').innerHTML='<span class="pill">HEDGE INICIAL · '+protocol.toUpperCase()+'</span>'+
+ '<div class="muted" style="margin-top:12px">SHORT recomendado para neutralizar a exposição atual</div><div class="big green">US$ '+money(initialUsd)+'</div>'+
+ '<div class="row"><span>Quantidade de '+n.t+' para vender</span><b>'+qty(initialQty)+' '+n.t+'<div class="subvalue">Equivalente: US$ '+money(initialUsd)+'</div></b></div>'+
+ '<div class="row"><span>Nocional do SHORT</span><b>US$ '+money(initialUsd)+'</b></div>'+
+ '<div class="row"><span>Alavancagem fixa</span><b>2x</b></div>'+
+ '<div class="row"><span>Margem teórica necessária</span><b>US$ '+money(initialMargin)+'</b></div>'+
+ '<div class="row"><span>Valor atual total da Pool</span><b>US$ '+money(m.xUsd+m.yUsd)+'</b></div>'+
+ '<div class="row"><span>Composição atual</span><b>'+qty(m.x)+' '+n.t+'<div class="subvalue">US$ '+money(m.xUsd)+'</div>'+money(m.yUsd)+' '+n.s+'<div class="subvalue">US$ '+money(m.yUsd)+'</div></b></div>'+
+ '<div class="hint">'+(inRange?'Preço atual dentro do range.':'Atenção: preço atual fora do range ou no limite.')+' A instrução inicial usa a exposição ao token volátil calculada a partir dos valores USD informados.</div>'+
+ (m.warning?'<div class="hint red">'+m.warning+'</div>':'');
+ const nowPrice=sim>0?sim:m.P,am=m.amounts(nowPrice),targetQty=am.x,targetUsd=targetQty*nowPrice;
+ const currentNotional=Math.max(0,num('currentShortUsd')),currentQty=currentNotional/m.P;
+ const delta=targetQty-currentQty,adjustUsd=Math.abs(delta)*nowPrice,margin=targetUsd/LEVERAGE;
+ let action='';
+ if(Math.abs(delta)<0.0000005)action='<span class="pill">HEDGE ALINHADO</span><div class="big">Nenhum ajuste indicado</div>';
+ else if(delta>0)action='<span class="pill">AUMENTAR SHORT</span><div class="big green">Vender '+qty(delta)+' '+n.t+'</div><div class="subvalue">Equivalente ao ajuste: US$ '+money(adjustUsd)+'</div>';
+ else action='<span class="pill warn">REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(delta))+' '+n.t+'</div><div class="subvalue">Equivalente ao ajuste: US$ '+money(adjustUsd)+'</div>';
+ $('rebalance').innerHTML='<div class="muted">PREÇO SIMULADO</div><div class="big">US$ '+money(nowPrice)+'</div>'+
+ '<div class="row"><span>Exposição estimada na Pool</span><b>'+qty(am.x)+' '+n.t+'<div class="subvalue">US$ '+money(am.x*nowPrice)+'</div></b></div>'+
+ '<div class="row"><span>Stablecoin estimada</span><b>'+money(am.y)+' '+n.s+'<div class="subvalue">US$ '+money(am.y)+'</div></b></div>'+
+ '<div class="divider"></div><div class="muted">SHORT TOTAL RECOMENDADO</div><div class="big green">US$ '+money(targetUsd)+'</div>'+
+ '<div class="row"><span>Quantidade total alvo</span><b>'+qty(targetQty)+' '+n.t+'<div class="subvalue">US$ '+money(targetUsd)+'</div></b></div>'+
+ '<div class="row"><span>Margem teórica total (2x)</span><b>US$ '+money(margin)+'</b></div>'+
+ '<div class="divider"></div>'+action+
+ '<div class="row"><span>SHORT atual informado</span><b>US$ '+money(currentNotional)+'<div class="subvalue">'+qty(currentQty)+' '+n.t+' ao preço atual</div></b></div>'+
+ '<div class="row"><span>Valor do ajuste</span><b>US$ '+money(adjustUsd)+'</b></div>'+
+ (m.warning?'<div class="hint red">'+m.warning+'</div>':'')+
+ '<div class="hint">A quantidade atual do SHORT é convertida automaticamente do nocional em USD pelo preço atual. O cálculo assume que a quantidade de contratos permanece constante até o ajuste.</div>';
+ const f=fundingPerDay(),poolCapital=m.xUsd+m.yUsd,poolDaily=poolCapital*apr/36500,costDaily=monthlyCosts/30,fundDaily=f.ready?f.daily:0,netDaily=poolDaily+fundDaily-costDaily,breakeven=poolCapital>0?Math.max(0,(costDaily-fundDaily)*365/poolCapital*100):0;
+ $('profit').innerHTML='<div class="row"><span>Capital atual da Pool</span><b>US$ '+money(poolCapital)+'</b></div>'+
+ '<div class="row"><span>Taxas estimadas da Pool / dia</span><b>US$ '+money(poolDaily)+'</b></div>'+
+ '<div class="row"><span>Funding médio líquido / dia</span><b class="'+(fundDaily>=0?'green':'red')+'">US$ '+money(fundDaily)+'</b></div>'+
+ '<div class="row"><span>Custos recorrentes / dia</span><b>US$ '+money(costDaily)+'</b></div>'+
+ '<div class="row"><span>Resultado líquido estimado / dia</span><b class="'+(netDaily>=0?'green':'red')+'">US$ '+money(netDaily)+'</b></div>'+
+ '<div class="row"><span>Resultado líquido / 30 dias</span><b>US$ '+money(netDaily*30)+'</b></div>'+
+ '<div class="row"><span>Resultado líquido / ano</span><b>US$ '+money(netDaily*365)+'</b></div>'+
+ '<div class="row"><span>APR de equilíbrio estimado</span><b>'+money(breakeven)+'%</b></div>'+
+ '<div class="row"><span>Outros custos já pagos</span><b>US$ '+money(oneTime)+'</b></div>'+
+ '<div class="hint">'+(f.ready?'Funding calculado com '+money(f.days)+' dias decorridos desde a abertura.':'Informe a data/hora de abertura para calcular a média diária do funding acumulado.')+' O funding acumulado é considerado com o sinal informado. Projeções não garantem retorno.</div>';
 }
 render();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
