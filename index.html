@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101827"><meta name="description" content="Pool + Hedge V5.3 - cálculo do hedge inicial">
+<meta name="theme-color" content="#101827"><meta name="description" content="Pool + Hedge V5.4 - cálculo do hedge inicial">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
-<title>Pool + Hedge V5.3</title>
+<title>Pool + Hedge V5.4</title>
 <style>
 :root{color-scheme:dark;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:14px 11px 34px}main{max-width:700px;margin:auto}
@@ -17,7 +17,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 </style>
 </head>
 <body><main>
-<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Cálculo do hedge inicial · V5.3</div></div><span class="tag">SUGGEST · MANUAL</span></header>
+<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Cálculo do hedge inicial · V5.4</div></div><span class="tag">SUGGEST · MANUAL</span></header>
 <section class="panel">
 <div class="eyebrow">1 · DADOS COPIADOS DA POOL</div>
 <div class="grid"><div><label>Token volátil</label><input id="token" value="ZEC" autocomplete="off"></div><div><label>Stablecoin</label><input id="stable" value="USDC" autocomplete="off"></div></div>
@@ -32,13 +32,14 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 <div id="result" class="result"><span class="muted">Preencha os dados da Pool para calcular o hedge.</span></div>
 <div class="hint">Alavancagem fixa em 2x. O aplicativo informa o nocional do SHORT e o capital (margem teórica) necessário para abrir a posição. A ordem é executada manualmente pelo usuário na Hyperliquid.</div>
 </section>
+<section class="panel"><div class="eyebrow">3 · ACOMPANHAMENTO E REBALANCEAMENTO</div><details><summary style="cursor:pointer;font-weight:700">Abrir simulação avançada (opcional)</summary><div class="hint">Informe o tamanho real do SHORT aberto na Hyperliquid e um preço para simular. O aplicativo estima a nova composição da posição concentrada dentro do range informado.</div><label>SHORT atualmente aberto (quantidade de tokens)</label><input id="shortQty" type="number" min="0" step="any" placeholder="Informe a quantidade atual"><label>Preço para simular (USD por token)</label><input id="simPrice" type="number" min="0" step="any" placeholder="Digite um preço para simular"><label>Tolerância de desequilíbrio (%)</label><input id="tolerance" type="number" min="0.5" max="50" step="0.5" value="5"><div id="rebalance" class="result"><span class="muted">Preencha o SHORT atual e o preço simulado para avaliar o rebalanceamento.</span></div></details></section>
 <section class="panel">
 <div class="eyebrow">COMO O CÁLCULO FUNCIONA</div>
 <div class="hint">Para o hedge inicial de 100% da exposição direcional atual, a quantidade do SHORT corresponde à quantidade atual do token volátil na Pool. O nocional é essa quantidade multiplicada pelo preço atual em USD. A margem teórica é o nocional dividido por 2.</div>
-<div class="hint">O capital total é calculado pela soma do valor do token volátil em USD com o valor da stablecoin, considerada pareada em US$ 1. APR, Tier Fee e range são apresentados como dados da posição; não alteram o tamanho do hedge inicial.</div>
+<div class="hint">O capital total é calculado pela soma do valor do token volátil em USD com o valor da stablecoin, considerada pareada em US$ 1. APR e Tier Fee não alteram o hedge inicial. A simulação usa os limites do range para estimar como a composição muda com o preço.</div>
 <div class="hint">A margem é uma estimativa inicial. Reserve margem adicional; alavancagem 2x não elimina risco de liquidação nem outros riscos da estratégia.</div>
 </section>
-<div class="footer">Pool + Hedge V5.3 · Assistente de cálculo manual, não recomendação financeira.</div>
+<div class="footer">Pool + Hedge V5.4 · Assistente de cálculo manual, não recomendação financeira.</div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -77,7 +78,33 @@ function render(){
  '<div class="row"><span>Range superior</span><b>'+fmt(high,8)+'</b></div>'+
  (warning?'<div class="warn">'+warning+'</div>':'<div class="hint">Preço atual dentro do range informado.</div>');
 }
-['token','stable','tokenQty','stableQty','price','apr','feeTier','rangeHigh','rangeLow'].forEach(id=>$(id).addEventListener('input',render));
+
+function renderRebalance(){
+ const out=$('rebalance'); if(!out)return;
+ const q=n('tokenQty'), y=n('stableQty'), p=n('price'), lo=Math.min(n('rangeLow'),n('rangeHigh')), hi=Math.max(n('rangeLow'),n('rangeHigh'));
+ const short=Number($('shortQty').value), sp=Number($('simPrice').value), tol=Math.max(0,Number($('tolerance').value)||5);
+ const token=$('token').value.trim()||'TOKEN', stable=$('stable').value.trim()||'STABLE';
+ if(!$('shortQty').value||!$('simPrice').value||short<0||sp<=0){out.innerHTML='<span class="muted">Informe o SHORT real aberto e o preço que deseja simular.</span>';return;}
+ if(p<=lo||p>=hi){out.innerHTML='<div class="warn">Para esta simulação, o preço atual precisa estar dentro do range informado. Confira os limites copiados da DEX.</div>';return;}
+ const a=Math.sqrt(lo), b=Math.sqrt(hi), s=Math.sqrt(p);
+ const L0=q*s*b/(b-s), L1=y/(s-a), mismatch=Math.abs(L0-L1)/Math.max((L0+L1)/2,1e-12)*100, L=(L0+L1)/2;
+ function amounts(px){const z=Math.sqrt(px);if(px<=lo)return {x:L*(1/a-1/b),y:0};if(px>=hi)return {x:0,y:L*(b-a)};return {x:L*(1/z-1/b),y:L*(z-a)};}
+ const future=amounts(sp), target=future.x, delta=target-short, imbalance=target>0?Math.abs(short-target)/target*100:(short===0?0:100);
+ const action=delta>1e-10?'Aumentar SHORT em '+fmt(delta)+' '+token:delta< -1e-10?'Reduzir SHORT em '+fmt(Math.abs(delta))+' '+token:'SHORT já está alinhado';
+ let html='<div class="row"><span>Composição estimada no preço simulado</span><b>'+fmt(future.x)+' '+token+'<div class="subvalue">'+usd(future.x*sp)+'</div>'+fmt(future.y)+' '+stable+'<div class="subvalue">≈ '+usd(future.y)+'</div></b></div>'+
+ '<div class="row"><span>SHORT alvo estimado</span><b>'+fmt(target)+' '+token+'<div class="subvalue">'+usd(target*sp)+'</div></b></div>'+
+ '<div class="row"><span>SHORT atual informado</span><b>'+fmt(short)+' '+token+'<div class="subvalue">'+usd(short*sp)+'</div></b></div>'+
+ '<div class="row"><span>Diferença vs. alvo</span><b>'+fmt(imbalance,2)+'%</b></div>'+
+ '<div class="row"><span>Ajuste sugerido</span><b>'+action+'</b></div>';
+ if(mismatch>10)html+='<div class="warn">Atenção: as quantidades atuais não parecem corresponder à mesma liquidez dentro desse range (divergência estimada de '+fmt(mismatch,1)+'%). Confira os dados na DEX. A projeção é apenas aproximada.</div>';
+ else if(imbalance>tol)html+='<div class="warn">REBALANCEAR: desequilíbrio acima da tolerância de '+fmt(tol,1)+'%.</div>';
+ else html+='<div class="hint">MANTER: desequilíbrio dentro da tolerância de '+fmt(tol,1)+'%.</div>';
+ html+='<div class="hint">Estimativa matemática de liquidez concentrada (modelo tipo Uniswap v3). Taxas acumuladas, alterações da posição e diferenças específicas do protocolo podem mudar os valores. Confirme a composição real na DEX antes de operar.</div>';
+ out.innerHTML=html;
+}
+
+['token','stable','tokenQty','stableQty','price','apr','feeTier','rangeHigh','rangeLow','shortQty','simPrice','tolerance'].forEach(id=>$(id).addEventListener('input',()=>{render();renderRebalance()}));
 render();
+renderRebalance();
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script></body></html>
