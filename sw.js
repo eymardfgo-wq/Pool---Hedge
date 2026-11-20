@@ -1,6 +1,6 @@
 
 
-const CACHE = 'pool-hedge-v5';
+const CACHE = 'pool-hedge-v51';
 
 const ASSETS = [
   './',
