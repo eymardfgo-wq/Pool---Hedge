@@ -85,9 +85,9 @@ function poolModel(){
  if(inside){
   const lx=x>0?(x/(1/sp-1/sh)):0;
   const ly=yUsd>0?(yUsd/(sp-sl)):0;
-  if(lx>0&&ly>0){L=(lx+ly)/2;mismatch=Math.abs(lx-ly)/Math.max(lx,ly)*100;}
+  if(lx>0&&ly>0){L=lx;mismatch=Math.abs(lx-ly)/Math.max(lx,ly)*100;}
   else L=lx||ly;
-  if(mismatch>5)warning='Os valores USD informados para os dois ativos parecem incompatíveis com o range (diferença estimada de liquidez '+money(mismatch)+'%). Confira os dados na DEX.';
+  if(mismatch>5)warning='Os valores USD informados para os dois ativos parecem incompatíveis com o range (diferença estimada de liquidez '+money(mismatch)+'%). A simulação prioriza a exposição do token volátil; confira os dados na DEX.';
  }else if(atOrBelow){
   L=x>0?x/(1/sl-1/sh):0;
   if(yUsd>0)warning='O preço atual está no limite inferior ou abaixo do range, mas foi informado saldo de stablecoin. Confira a posição na DEX.';
