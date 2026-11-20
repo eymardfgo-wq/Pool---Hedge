@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101827">
-<meta name="description" content="Pool + Hedge V5.1 - simulador de liquidez concentrada e hedge delta neutral">
+<meta name="description" content="Pool + Hedge V5.2 - simulador de liquidez concentrada e hedge delta neutral">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
-<title>Pool + Hedge V5.1</title>
+<title>Pool + Hedge V5.2</title>
 <style>
 :root{color-scheme:dark;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:16px 12px 36px}
@@ -24,7 +24,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,se
 </style>
 </head>
 <body><main>
-<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Liquidez concentrada · V5.1</div></div><span class="tag">SUGGEST · MANUAL</span></header>
+<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Liquidez concentrada · V5.2</div></div><span class="tag">SUGGEST · MANUAL</span></header>
 
 <section class="panel">
 <div class="eyebrow">1 · CONFIGURAÇÃO DA POOL</div>
@@ -44,7 +44,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,se
 <section class="panel">
 <div class="eyebrow">2 · CONFIGURAÇÃO DO HEDGE E CUSTOS</div>
 <div class="grid"><div><label>Alavancagem do short (x)</label><input id="leverage" type="number" min="1" step="0.1" value="2"></div><div><label>Funding líquido por dia (USD)</label><input id="funding" type="number" step="any" value="0"></div></div>
-<label>Quantidade atual do short real (<span id="shortTokenLabel">token</span>)</label><input id="actualShort" type="number" min="0" step="any" placeholder="Informe o short aberto na Hyperliquid"><div class="hint">Informe a quantidade total atualmente aberta na Hyperliquid. Use 0 se não houver short. O Suggest comparará o short-alvo com este valor, não com o short inicial estimado.</div>
+<label>Quantidade atual do short real (<span id="shortTokenLabel">token</span>)</label><input id="actualShort" type="number" min="0" step="any" placeholder="Informe o short aberto na Hyperliquid"><div class="hint">Informe a quantidade total atualmente aberta na Hyperliquid. Use 0 se não houver short. O Suggest compara o short-alvo calculado para o preço simulado com esta quantidade real informada. Não usa uma posição inicial estimada.</div>
 <div class="hint">Funding positivo = recebido; funding negativo = pago. Informe a média diária observada, com sinal.</div>
 <div class="grid"><div><label>Custos operacionais por mês (USD)</label><input id="monthlyCosts" type="number" min="0" step="any" value="0"></div><div><label>Outros custos já pagos (USD)</label><input id="oneTimeCosts" type="number" min="0" step="any" value="0"></div></div>
 <div class="hint">Inclua estimativas de taxas de negociação, gas e slippage nos custos mensais. Custos já pagos aparecem separadamente e não alteram o ponto de equilíbrio recorrente.</div>
@@ -57,7 +57,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,se
 <label class="between"><span>Variação simulada do preço</span><strong id="moveLabel">0%</strong></label>
 <input id="move" type="range" min="-80" max="100" step="5" value="0">
 <div class="choices quick" id="quick"></div><div id="dynamic"></div>
-<div class="hint">Modo Suggest: o aplicativo calcula o ajuste sugerido, mas não envia ordens. A comparação é contra a posição inicial simulada. Atualize os dados manualmente após executar um rebalanceamento.</div>
+<div class="hint">Modo Suggest: o aplicativo calcula o ajuste sugerido, mas não envia ordens. A comparação é feita contra a quantidade atual do short real informada na seção 2. Após executar um rebalanceamento, atualize esse campo com a nova posição da Hyperliquid.</div>
 </section>
 
 <section class="panel"><div class="eyebrow">PREMISSAS E LIMITAÇÕES</div>
@@ -67,7 +67,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,se
 <div class="hint">• O modelo de range é uma aproximação matemática de liquidez concentrada. Confirme ticks, token ordering, fee tier e composição efetiva na interface da DEX.</div>
 <div class="hint">• A margem exibida é nocional dividido pela alavancagem. Margem disponível e liquidação reais dependem das regras, tiers e saldo da Hyperliquid.</div>
 </section>
-<div class="footer">Pool + Hedge V5.1 · Controle manual do hedge real, não recomendação financeira.</div>
+<div class="footer">Pool + Hedge V5.2 · Controle do hedge real, não recomendação financeira.</div>
 </main>
 
 <script>
