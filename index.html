@@ -113,90 +113,10 @@ function render(){
  '<div class="row"><span>Nocional do short</span><b>$'+money(notional)+'</b></div><div class="row"><span>Margem teórica</span><b>$'+money(margin)+'</b></div><div class="row"><span>Capital + margem</span><b>$'+money(C+margin)+'</b></div>'+
  '<div class="divider"></div><div class="muted">PROJEÇÃO DE RESULTADO COM APR CONSTANTE</div>'+
  '<div class="row"><span>Receita Pool / dia</span><b>$'+money(poolDaily)+'</b></div><div class="row"><span>Resultado líquido estimado / dia</span><b class="'+(netDaily>=0?'green':'red')+'">$'+money(netDaily)+'</b></div>'+
- '<div class="row"><span>Resultado líquido / 30 dias</span><b class="'+(netMonthly>=0?'green':'red')+'">
- '<div class="hint">'+(apr>=breakEvenSafe?'APR informado acima do ponto de equilíbrio estimado.':'APR informado abaixo do ponto de equilíbrio estimado.')+' O ponto de equilíbrio considera funding e custos recorrentes, não inclui custos já pagos.</div>';
-
- const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN;
- const newNotional=newShort*newP,newMargin=newNotional/lev,inside=newP>=lo&&newP<=hi;
- let action=adj>1e-9?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(adj)+' '+T+'</div>':
- adj< -1e-9?'<span class="pill warn">SUGESTÃO · REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(adj))+' '+T+'</div>':
- '<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>';
- $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$'+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
- '<div class="divider"></div><div class="row"><span>'+T+' na Pool</span><b>'+qty(now.x)+'</b></div><div class="row"><span>Valor em '+S+'</span><b>$'+money(now.y)+'</b></div><div class="row"><span>Valor estimado da Pool</span><b>$'+money(now.x*newP+now.y)+'</b></div>'+
- '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="row"><span>Nocional do short alvo</span><b>$'+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>$'+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="hint">Ajuste calculado em relação ao short inicial: '+(adj>=0?'+':'')+qty(adj)+' '+T+'. Compare com o tamanho real do short antes de executar.</div></div>';
-}
-render();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script></body></html>
-+money(netMonthly)+'</b></div><div class="row"><span>Resultado líquido / ano</span><b class="'+(netAnnual>=0?'green':'red')+'">
- '<div class="hint">'+(apr>=breakEvenSafe?'APR informado acima do ponto de equilíbrio estimado.':'APR informado abaixo do ponto de equilíbrio estimado.')+' O ponto de equilíbrio considera funding e custos recorrentes, não inclui custos já pagos.</div>';
-
- const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN;
- const newNotional=newShort*newP,newMargin=newNotional/lev,inside=newP>=lo&&newP<=hi;
- let action=adj>1e-9?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(adj)+' '+T+'</div>':
- adj< -1e-9?'<span class="pill warn">SUGESTÃO · REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(adj))+' '+T+'</div>':
- '<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>';
- $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$'+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
- '<div class="divider"></div><div class="row"><span>'+T+' na Pool</span><b>'+qty(now.x)+'</b></div><div class="row"><span>Valor em '+S+'</span><b>$'+money(now.y)+'</b></div><div class="row"><span>Valor estimado da Pool</span><b>$'+money(now.x*newP+now.y)+'</b></div>'+
- '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="row"><span>Nocional do short alvo</span><b>$'+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>$'+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="hint">Ajuste calculado em relação ao short inicial: '+(adj>=0?'+':'')+qty(adj)+' '+T+'. Compare com o tamanho real do short antes de executar.</div></div>';
-}
-render();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script></body></html>
-+money(netAnnual)+'</b></div>'+
+ '<div class="row"><span>Resultado líquido / 30 dias</span><b class="'+(netMonthly>=0?'green':'red')+'">$'+money(netMonthly)+'</b></div><div class="row"><span>Resultado líquido / ano</span><b class="'+(netAnnual>=0?'green':'red')+'">$'+money(netAnnual)+'</b></div>'+
  '<div class="row"><span>Retorno diário sobre Pool + margem</span><b>'+money((C+margin)>0?netDaily/(C+margin)*100:0)+'%</b></div><div class="row"><span>Retorno em 30 dias sobre Pool + margem</span><b>'+money((C+margin)>0?netMonthly/(C+margin)*100:0)+'%</b></div><div class="row"><span>Retorno anual sobre Pool + margem</span><b>'+money((C+margin)>0?netAnnual/(C+margin)*100:0)+'%</b></div>'+
  '<div class="divider"></div><div class="muted">APR MÍNIMO DE EQUILÍBRIO RECORRENTE</div><div class="big '+(apr>=breakEvenSafe?'green':'red')+'">'+money(breakEvenSafe)+'%</div>'+
- '<div class="row"><span>APR informado</span><b>'+money(apr)+'%</b></div><div class="row"><span>Funding projetado / ano</span><b>
- '<div class="hint">'+(apr>=breakEvenSafe?'APR informado acima do ponto de equilíbrio estimado.':'APR informado abaixo do ponto de equilíbrio estimado.')+' O ponto de equilíbrio considera funding e custos recorrentes, não inclui custos já pagos.</div>';
-
- const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN;
- const newNotional=newShort*newP,newMargin=newNotional/lev,inside=newP>=lo&&newP<=hi;
- let action=adj>1e-9?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(adj)+' '+T+'</div>':
- adj< -1e-9?'<span class="pill warn">SUGESTÃO · REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(adj))+' '+T+'</div>':
- '<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>';
- $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$'+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
- '<div class="divider"></div><div class="row"><span>'+T+' na Pool</span><b>'+qty(now.x)+'</b></div><div class="row"><span>Valor em '+S+'</span><b>$'+money(now.y)+'</b></div><div class="row"><span>Valor estimado da Pool</span><b>$'+money(now.x*newP+now.y)+'</b></div>'+
- '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="row"><span>Nocional do short alvo</span><b>$'+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>$'+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="hint">Ajuste calculado em relação ao short inicial: '+(adj>=0?'+':'')+qty(adj)+' '+T+'. Compare com o tamanho real do short antes de executar.</div></div>';
-}
-render();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script></body></html>
-+money(fund*365)+'</b></div><div class="row"><span>Custos recorrentes / ano</span><b>
- '<div class="hint">'+(apr>=breakEvenSafe?'APR informado acima do ponto de equilíbrio estimado.':'APR informado abaixo do ponto de equilíbrio estimado.')+' O ponto de equilíbrio considera funding e custos recorrentes, não inclui custos já pagos.</div>';
-
- const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN;
- const newNotional=newShort*newP,newMargin=newNotional/lev,inside=newP>=lo&&newP<=hi;
- let action=adj>1e-9?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(adj)+' '+T+'</div>':
- adj< -1e-9?'<span class="pill warn">SUGESTÃO · REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(adj))+' '+T+'</div>':
- '<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>';
- $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$'+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
- '<div class="divider"></div><div class="row"><span>'+T+' na Pool</span><b>'+qty(now.x)+'</b></div><div class="row"><span>Valor em '+S+'</span><b>$'+money(now.y)+'</b></div><div class="row"><span>Valor estimado da Pool</span><b>$'+money(now.x*newP+now.y)+'</b></div>'+
- '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="row"><span>Nocional do short alvo</span><b>$'+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>$'+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="hint">Ajuste calculado em relação ao short inicial: '+(adj>=0?'+':'')+qty(adj)+' '+T+'. Compare com o tamanho real do short antes de executar.</div></div>';
-}
-render();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script></body></html>
-+money(annualCosts)+'</b></div><div class="row"><span>Outros custos já pagos</span><b>
- '<div class="hint">'+(apr>=breakEvenSafe?'APR informado acima do ponto de equilíbrio estimado.':'APR informado abaixo do ponto de equilíbrio estimado.')+' O ponto de equilíbrio considera funding e custos recorrentes, não inclui custos já pagos.</div>';
-
- const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN;
- const newNotional=newShort*newP,newMargin=newNotional/lev,inside=newP>=lo&&newP<=hi;
- let action=adj>1e-9?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(adj)+' '+T+'</div>':
- adj< -1e-9?'<span class="pill warn">SUGESTÃO · REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(adj))+' '+T+'</div>':
- '<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>';
- $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$'+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
- '<div class="divider"></div><div class="row"><span>'+T+' na Pool</span><b>'+qty(now.x)+'</b></div><div class="row"><span>Valor em '+S+'</span><b>$'+money(now.y)+'</b></div><div class="row"><span>Valor estimado da Pool</span><b>$'+money(now.x*newP+now.y)+'</b></div>'+
- '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="row"><span>Nocional do short alvo</span><b>$'+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>$'+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="hint">Ajuste calculado em relação ao short inicial: '+(adj>=0?'+':'')+qty(adj)+' '+T+'. Compare com o tamanho real do short antes de executar.</div></div>';
-}
-render();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script></body></html>
-+money(one)+'</b></div>'+
+ '<div class="row"><span>APR informado</span><b>'+money(apr)+'%</b></div><div class="row"><span>Funding projetado / ano</span><b>$'+money(fund*365)+'</b></div><div class="row"><span>Custos recorrentes / ano</span><b>$'+money(annualCosts)+'</b></div><div class="row"><span>Outros custos já pagos</span><b>$'+money(one)+'</b></div>'+
  '<div class="hint">'+(apr>=breakEvenSafe?'APR informado acima do ponto de equilíbrio estimado.':'APR informado abaixo do ponto de equilíbrio estimado.')+' O ponto de equilíbrio considera funding e custos recorrentes, não inclui custos já pagos.</div>';
 
  const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN;
