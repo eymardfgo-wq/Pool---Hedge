@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101827">
-<meta name="description" content="Pool + Hedge V5.0 - simulador de liquidez concentrada e hedge delta neutral">
+<meta name="description" content="Pool + Hedge V5.1 - simulador de liquidez concentrada e hedge delta neutral">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
-<title>Pool + Hedge V5.0</title>
+<title>Pool + Hedge V5.1</title>
 <style>
 :root{color-scheme:dark;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:16px 12px 36px}
@@ -24,7 +24,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,se
 </style>
 </head>
 <body><main>
-<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Liquidez concentrada · V5.0</div></div><span class="tag">SUGGEST · MANUAL</span></header>
+<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Liquidez concentrada · V5.1</div></div><span class="tag">SUGGEST · MANUAL</span></header>
 
 <section class="panel">
 <div class="eyebrow">1 · CONFIGURAÇÃO DA POOL</div>
@@ -44,6 +44,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,se
 <section class="panel">
 <div class="eyebrow">2 · CONFIGURAÇÃO DO HEDGE E CUSTOS</div>
 <div class="grid"><div><label>Alavancagem do short (x)</label><input id="leverage" type="number" min="1" step="0.1" value="2"></div><div><label>Funding líquido por dia (USD)</label><input id="funding" type="number" step="any" value="0"></div></div>
+<label>Quantidade atual do short real (<span id="shortTokenLabel">token</span>)</label><input id="actualShort" type="number" min="0" step="any" placeholder="Informe o short aberto na Hyperliquid"><div class="hint">Informe a quantidade total atualmente aberta na Hyperliquid. Use 0 se não houver short. O Suggest comparará o short-alvo com este valor, não com o short inicial estimado.</div>
 <div class="hint">Funding positivo = recebido; funding negativo = pago. Informe a média diária observada, com sinal.</div>
 <div class="grid"><div><label>Custos operacionais por mês (USD)</label><input id="monthlyCosts" type="number" min="0" step="any" value="0"></div><div><label>Outros custos já pagos (USD)</label><input id="oneTimeCosts" type="number" min="0" step="any" value="0"></div></div>
 <div class="hint">Inclua estimativas de taxas de negociação, gas e slippage nos custos mensais. Custos já pagos aparecem separadamente e não alteram o ponto de equilíbrio recorrente.</div>
@@ -66,7 +67,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,se
 <div class="hint">• O modelo de range é uma aproximação matemática de liquidez concentrada. Confirme ticks, token ordering, fee tier e composição efetiva na interface da DEX.</div>
 <div class="hint">• A margem exibida é nocional dividido pela alavancagem. Margem disponível e liquidação reais dependem das regras, tiers e saldo da Hyperliquid.</div>
 </section>
-<div class="footer">Pool + Hedge V5.0 · Simulador, não recomendação financeira.</div>
+<div class="footer">Pool + Hedge V5.1 · Controle manual do hedge real, não recomendação financeira.</div>
 </main>
 
 <script>
@@ -78,7 +79,7 @@ function bindChoices(id,cb){$(id).querySelectorAll('button').forEach(b=>b.addEve
 bindChoices('protocol',v=>{protocol=v;render()});
 [-50,-30,-20,-10,0,10,20,30,50].forEach(v=>{const b=document.createElement('button');b.textContent=(v>0?'+':'')+v+'%';b.dataset.v=v;if(v===0)b.classList.add('active');$('quick').appendChild(b)});
 bindChoices('quick',v=>{$('move').value=v;render()});
-['capital','token','stable','price','allocation','apr','feeTier','width','leverage','funding','monthlyCosts','oneTimeCosts','move'].forEach(id=>$(id).addEventListener('input',render));
+['capital','token','stable','price','allocation','apr','feeTier','width','leverage','funding','actualShort','monthlyCosts','oneTimeCosts','move'].forEach(id=>$(id).addEventListener('input',render));
 
 function render(){
  const C=Math.max(0,Number($('capital').value)||0),P=Math.max(0,Number($('price').value)||0);
@@ -119,15 +120,18 @@ function render(){
  '<div class="row"><span>APR informado</span><b>'+money(apr)+'%</b></div><div class="row"><span>Funding projetado / ano</span><b>$'+money(fund*365)+'</b></div><div class="row"><span>Custos recorrentes / ano</span><b>$'+money(annualCosts)+'</b></div><div class="row"><span>Outros custos já pagos</span><b>$'+money(one)+'</b></div>'+
  '<div class="hint">'+(apr>=breakEvenSafe?'APR informado acima do ponto de equilíbrio estimado.':'APR informado abaixo do ponto de equilíbrio estimado.')+' O ponto de equilíbrio considera funding e custos recorrentes, não inclui custos já pagos.</div>';
 
- const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x,adj=newShort-startN;
+ const newP=P*(1+mv/100),now=amounts(newP),newShort=now.x;
+ const actualShortRaw=$('actualShort').value.trim();
+ const hasActualShort=actualShortRaw!==''&&Number.isFinite(Number(actualShortRaw))&&Number(actualShortRaw)>=0;
+ const actualShort=hasActualShort?Number(actualShortRaw):0,adj=newShort-actualShort;
  const newNotional=newShort*newP,newMargin=newNotional/lev,inside=newP>=lo&&newP<=hi;
- let action=adj>1e-9?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(adj)+' '+T+'</div>':
+ let action=!hasActualShort?'<span class="pill warn">INFORME O SHORT REAL</span><div class="hint">Preencha a quantidade atualmente aberta na Hyperliquid para calcular a ordem de ajuste com segurança.</div>':adj>1e-9?'<span class="pill">SUGESTÃO · AUMENTAR SHORT</span><div class="big green">Vender '+qty(adj)+' '+T+'</div>':
  adj< -1e-9?'<span class="pill warn">SUGESTÃO · REDUZIR SHORT</span><div class="big red">Recomprar '+qty(Math.abs(adj))+' '+T+'</div>':
  '<span class="pill">SEM AJUSTE</span><div class="big">Hedge equilibrado</div>';
  $('dynamic').innerHTML='<div class="result"><div class="muted">PREÇO SIMULADO</div><div class="big">$'+money(newP)+'</div><span class="pill '+(inside?'':'warn')+'">'+(inside?'DENTRO DO RANGE':'FORA DO RANGE')+'</span>'+
  '<div class="divider"></div><div class="row"><span>'+T+' na Pool</span><b>'+qty(now.x)+'</b></div><div class="row"><span>Valor em '+S+'</span><b>$'+money(now.y)+'</b></div><div class="row"><span>Valor estimado da Pool</span><b>$'+money(now.x*newP+now.y)+'</b></div>'+
  '<div class="divider"></div><div class="muted">SHORT ALVO PARA DELTA NEUTRO</div><div class="big green">'+qty(newShort)+' '+T+'</div><div class="row"><span>Nocional do short alvo</span><b>$'+money(newNotional)+'</b></div><div class="row"><span>Margem teórica a '+lev+'x</span><b>$'+money(newMargin)+'</b></div><div class="divider"></div>'+action+
- '<div class="hint">Ajuste calculado em relação ao short inicial: '+(adj>=0?'+':'')+qty(adj)+' '+T+'. Compare com o tamanho real do short antes de executar.</div></div>';
+ '<div class="row"><span>Short real informado</span><b>'+qty(actualShort)+' '+T+'</b></div><div class="row"><span>Ajuste calculado vs. short real</span><b class="'+(!hasActualShort?'red':Math.abs(adj)<1e-9?'green':adj>0?'green':'red')+'">'+(hasActualShort?(adj>0?'+':'')+qty(adj)+' '+T:'Aguardando dado')+'</b></div>'+(hasActualShort?'<div class="hint">Sugestão calculada comparando o short-alvo da Pool com a posição real informada. Confirme o tamanho da posição na Hyperliquid antes de executar.</div>':'')+'</div>';
 }
 render();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
