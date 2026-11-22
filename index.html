@@ -31,6 +31,14 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 <div class="hint">Alavancagem fixa em 2x. O aplicativo informa o nocional do SHORT e o capital (margem teórica) necessário para abrir a posição. A ordem é executada manualmente pelo usuário na Hyperliquid.</div>
 </section>
 <section class="panel">
+<section class="panel">
+<div class="eyebrow">3 · REAVALIAÇÃO DO HEDGE DINÂMICO</div>
+<div class="hint">Atualize a quantidade atual de token na Pool e a quantidade de SHORT aberta na Hyperliquid. O app compara com hedge de 100% da exposição atual.</div>
+<div class="grid"><div><label>Token atual na Pool (quantidade)</label><input id="dynPoolQty" type="number" min="0" step="any" value="0.31945942"></div><div><label>Preço atual (USD/token)</label><input id="dynPrice" type="number" min="0" step="any" value="862.25063"></div></div>
+<label>SHORT atual aberto (quantidade de token)</label><input id="dynShortQty" type="number" min="0" step="any" value="0.31945942">
+<div id="dynResult" class="result"></div>
+<div class="hint">Hedge ideal = quantidade atual do token volátil na Pool (100% de cobertura). Ajuste é calculado em quantidade e USD. A alavancagem de 2x é usada somente para estimar a margem do ajuste.</div>
+</section>
 <div class="eyebrow">COMO O CÁLCULO FUNCIONA</div>
 <div class="hint">Para o hedge inicial de 100% da exposição direcional atual, a quantidade do SHORT corresponde à quantidade atual do token volátil na Pool. O nocional é essa quantidade multiplicada pelo preço atual em USD. A margem teórica é o nocional dividido por 2.</div>
 <div class="hint">O capital total é calculado pela soma do valor do token volátil em USD com o valor da stablecoin, considerada pareada em US$ 1. APR, Tier Fee e range são apresentados como dados da posição; não alteram o tamanho do hedge inicial.</div>
