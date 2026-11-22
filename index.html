@@ -68,7 +68,7 @@ function render(){
  '<div class="divider"></div><div class="muted">COMPOSIÇÃO DA POOL · VALORES CALCULADOS</div>'+
  '<div class="row"><span>'+token+'</span><b>'+fmt(tokenQty)+' '+token+'<div class="subvalue">'+usd(tokenUsd)+'</div></b></div>'+
  '<div class="row"><span>'+stable+'</span><b>'+fmt(stableQty)+' '+stable+'<div class="subvalue">≈ '+usd(stableUsd)+'</div></b></div>'+
- '<div class="row"><span>Capital total calculado</span><b>'+usd(poolCapital)+'</b></div>'+'<div class="divider"></div><div class="muted">PROJEÇÃO DE RECEITA DA POOL · APR CONSTANTE</div>'+
+ '<div class="row"><span>Capital total calculado</span><b>'+usd(poolCapital)+'</b></div>'+'<div class="divider"></div><div class="muted">PROJEÇÃO DE RECEITA DA POOL · APR CONSTANTE</div>'+ '<div class="row"><span>Lucro estimado em 1 ano</span><b class="green">'+usd(annualProfit)+'</b></div>'+ '<div class="row"><span>30 dias</span><b>'+usd(projected(30))+'</b></div>'+ '<div class="row"><span>90 dias</span><b>'+usd(projected(90))+'</b></div>'+ '<div class="row"><span>180 dias</span><b>'+usd(projected(180))+'</b></div>'+ '<div class="row"><span>365 dias</span><b>'+usd(projected(365))+'</b></div>'+ '<div class="hint">Estimativa simples com APR constante, sem reinvestimento das taxas, antes de custos, funding e perdas impermanentes.</div>'+
  '<div class="divider"></div>'+
  '<div class="row"><span>Preço atual informado</span><b>'+usd(price)+' / '+token+'</b></div>'+
  '<div class="row"><span>APR anual / Tier Fee</span><b>'+fmt(apr,4)+'% / '+($('feeTier').value.trim()||'não informado')+'</b></div>'+
@@ -78,4 +78,27 @@ function render(){
 }
 ['token','stable','tokenQty','stableQty','price','apr','feeTier','rangeHigh','rangeLow'].forEach(id=>$(id).addEventListener('input',render));
 render();
+function renderDynamic(){
+ const q=Number($('dynPoolQty').value),p=Number($('dynPrice').value),s=Number($('dynShortQty').value);
+ const el=$('dynResult');
+ if(!Number.isFinite(q)||q<0||!Number.isFinite(p)||p<=0||!Number.isFinite(s)||s<0){
+  el.innerHTML='<div class="warn">Informe quantidades válidas e preço maior que zero.</div>';return;
+ }
+ const ideal=q,delta=ideal-s,idealUsd=ideal*p,shortUsd=s*p,deltaUsd=delta*p;
+ const action=delta>1e-10?'AUMENTAR SHORT':delta< -1e-10?'REDUZIR SHORT':'HEDGE ALINHADO';
+ el.innerHTML='<span class="pill">HEDGE DINÂMICO</span>'+
+ '<div class="muted" style="margin-top:12px">SHORT IDEAL ATUAL (100% EXPOSIÇÃO)</div><div class="big">'+fmt(ideal)+' '+($('token').value.trim()||'TOKEN')+'</div><div class="subvalue">Equivalente a '+usd(idealUsd)+'</div>'+
+ '<div class="divider"></div><div class="row"><span>SHORT atual</span><b>'+fmt(s)+' '+($('token').value.trim()||'TOKEN')+'<div class="subvalue">'+usd(shortUsd)+'</div></b></div>'+
+ '<div class="row"><span>Desvio do hedge</span><b>'+fmt(ideal>0?Math.abs(delta)/ideal*100:0,2)+'%</b></div>'+
+ '<div class="row"><span>Ação sugerida</span><b>'+action+'</b></div>'+
+ '<div class="row"><span>Ajuste de SHORT</span><b>'+fmt(Math.abs(delta))+' '+($('token').value.trim()||'TOKEN')+'<div class="subvalue">'+usd(Math.abs(deltaUsd))+'</div></b></div>'+
+ '<div class="row"><span>Margem teórica do ajuste · 2x</span><b>'+usd(Math.abs(deltaUsd)/LEVERAGE)+'</b></div>'+
+ '<div class="hint">O ajuste é calculado pela diferença entre o SHORT ideal atual e o SHORT informado. Confirme sua posição na Hyperliquid antes de executar.</div>';
+}
+['dynPoolQty','dynPrice','dynShortQty'].forEach(id=>$(id).addEventListener('input',renderDynamic));
+$('tokenQty').addEventListener('input',()=>{$('dynPoolQty').value=$('tokenQty').value;renderDynamic()});
+$('price').addEventListener('input',()=>{$('dynPrice').value=$('price').value;renderDynamic()});
+$('token').addEventListener('input',renderDynamic);
+$('dynPoolQty').value=$('tokenQty').value;$('dynPrice').value=$('price').value;$('dynShortQty').value=$('tokenQty').value;
+renderDynamic();
 </script></body></html>
