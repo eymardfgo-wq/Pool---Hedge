@@ -38,6 +38,12 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 <div id="dynResult" class="result"></div>
 <div class="hint">Hedge ideal = quantidade atual do token volátil na Pool (100% de cobertura). Ajuste é calculado em quantidade e USD. A alavancagem de 2x é usada somente para estimar a margem do ajuste.</div>
 </section>
+<section class="panel" id="exitMapPanel">
+<div class="eyebrow">4 · MAPA DE SAÍDA — POOL + HEDGE (ALTA / BAIXA)</div>
+<div class="hint">Simula o PnL combinado em diferentes preços e mostra o melhor resultado encontrado em cada direção dentro da faixa de simulação. Não inclui APR/taxas acumuladas.</div>
+<div id="exitMapResult" class="result"><span class="muted">Preencha os dados da Pool para simular os pontos de saída.</span></div>
+<div class="hint">Modelo de liquidez concentrada baseado nos tokens atuais, preço e range informados. A simulação varre preços de 10% a 300% do preço inicial; os pontos podem estar nos limites desse intervalo. Resultados estimados, não garantidos; confirme a posição e custos reais antes de encerrar.</div>
+</section>
 <section class="panel">
 <div class="eyebrow">COMO O CÁLCULO FUNCIONA</div>
 <div class="hint">Para o hedge inicial de 100% da exposição direcional atual, a quantidade do SHORT corresponde à quantidade atual do token volátil na Pool. O nocional é essa quantidade multiplicada pelo preço atual em USD. A margem teórica é o nocional dividido por 2.</div>
