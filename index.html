@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101827"><meta name="description" content="Pool + Hedge V5.4 - projeção anual e hedge dinâmico">
-<title>Pool + Hedge V5.4</title>
+<meta name="theme-color" content="#101827"><meta name="description" content="Pool + Hedge V5.5 - projeção, hedge dinâmico e mapa de saída">
+<title>Pool + Hedge V5.5</title>
 <style>
 :root{color-scheme:dark;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:14px 11px 34px}main{max-width:700px;margin:auto}
@@ -15,7 +15,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 </style>
 </head>
 <body><main>
-<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Projeção anual + reavaliação de hedge · V5.4</div></div><span class="tag">SUGGEST · MANUAL</span></header>
+<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Projeção anual + hedge dinâmico + mapa de saída · V5.5</div></div><span class="tag">SUGGEST · MANUAL</span></header>
 <section class="panel">
 <div class="eyebrow">1 · DADOS COPIADOS DA POOL</div>
 <div class="grid"><div><label>Token volátil</label><input id="token" value="ZEC" autocomplete="off"></div><div><label>Stablecoin</label><input id="stable" value="USDC" autocomplete="off"></div></div>
@@ -44,7 +44,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 <div class="hint">O capital total é calculado pela soma do valor do token volátil em USD com o valor da stablecoin, considerada pareada em US$ 1. APR, Tier Fee e range são apresentados como dados da posição; não alteram o tamanho do hedge inicial.</div>
 <div class="hint">A margem é uma estimativa inicial. Reserve margem adicional; alavancagem 2x não elimina risco de liquidação nem outros riscos da estratégia.</div>
 </section>
-<div class="footer">Pool + Hedge V5.4 · Assistente de cálculo manual, não recomendação financeira.</div>
+<div class="footer">Pool + Hedge V5.5 · Assistente de cálculo manual, não recomendação financeira.</div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -86,6 +86,48 @@ function render(){
 }
 ['token','stable','tokenQty','stableQty','price','apr','feeTier','rangeHigh','rangeLow'].forEach(id=>$(id).addEventListener('input',render));
 render();
+renderExitMap();
+function renderExitMap(){
+ const q0=n('tokenQty'),q1=n('stableQty'),p0=n('price'),loInput=n('rangeLow'),hiInput=n('rangeHigh'),short=q0;
+ const out=$('exitMapResult'), token=$('token').value.trim()||'TOKEN';
+ if(!(q0>0&&q1>=0&&p0>0&&loInput>0&&hiInput>0&&loInput!==hiInput)){
+  out.innerHTML='<div class="warn">Confira quantidades, preço e range para calcular o mapa de saída.</div>';return;
+ }
+ const lo=Math.min(loInput,hiInput),hi=Math.max(loInput,hiInput);
+ if(p0<=lo||p0>=hi){
+  out.innerHTML='<div class="warn">Para o modelo de liquidez concentrada, o preço inicial precisa estar dentro do range informado. Confira os dados da Pool.</div>';return;
+ }
+ const sqrtP=Math.sqrt(p0),sqrtLo=Math.sqrt(lo),sqrtHi=Math.sqrt(hi);
+ // Infer liquidity from current token amounts; average both estimates to reduce rounding inconsistencies.
+ const L0=q0/(1/sqrtP-1/sqrtHi), L1=q1/(sqrtP-sqrtLo);
+ const L=(L0+L1)/2;
+ const baseValue=q0*p0+q1;
+ function poolAt(price){
+  const sp=Math.sqrt(price);
+  if(price<=lo) return {volatile:L*(1/sqrtLo-1/sqrtHi),stable:0};
+  if(price>=hi) return {volatile:0,stable:L*(sqrtHi-sqrtLo)};
+  return {volatile:L*(1/sp-1/sqrtHi),stable:L*(sp-sqrtLo)};
+ }
+ function combinedAt(price){
+  const amounts=poolAt(price), poolVal=amounts.volatile*price+amounts.stable;
+  const poolPnl=poolVal-baseValue, shortPnl=short*(p0-price);
+  return {price,percent:(price/p0-1)*100,poolVal,poolPnl,shortPnl,combined:poolPnl+shortPnl,volatile:amounts.volatile,stable:amounts.stable};
+ }
+ const steps=2400, minP=p0*0.1,maxP=p0*3;
+ let bestUp=null,bestDown=null;
+ for(let i=0;i<=steps;i++){
+  const px=minP+(maxP-minP)*i/steps, r=combinedAt(px);
+  if(px>p0&&(!bestUp||r.combined>bestUp.combined))bestUp=r;
+  if(px<p0&&(!bestDown||r.combined>bestDown.combined))bestDown=r;
+ }
+ const card=(title,r,color,arrow)=>'<div class="result" style="margin:10px 0"><div style="font-weight:800;color:'+color+'">'+title+'</div><div class="big" style="color:'+color+'">'+(r.percent>=0?'+':'')+fmt(r.percent,2)+'%</div><div style="font-size:20px;font-weight:800">'+usd(r.price)+' / '+token+'</div><div class="divider"></div><div class="row"><span>Valor estimado da Pool</span><b>'+usd(r.poolVal)+'</b></div><div class="row"><span>PnL da Pool</span><b style="color:'+color+'">'+usd(r.poolPnl)+'</b></div><div class="row"><span>PnL do Short</span><b>'+usd(r.shortPnl)+'</b></div><div class="row"><span><strong>PnL combinado (sem taxas)</strong></span><b style="color:'+color+'">'+usd(r.combined)+'</b></div><div class="row"><span>Composição estimada</span><b>'+fmt(r.volatile,8)+' '+token+'<div class="subvalue">'+usd(r.volatile*r.price)+'</div>'+fmt(r.stable,6)+' '+($('stable').value.trim()||'STABLE')+'<div class="subvalue">'+usd(r.stable)+'</div></b></div></div>';
+ const consistency=Math.abs(L0-L1)/Math.max(L0,L1)*100;
+ out.innerHTML='<div class="grid"><div><div class="muted">Preço inicial</div><div class="big">'+usd(p0)+'</div></div><div><div class="muted">Capital inicial da Pool</div><div class="big">'+usd(baseValue)+'</div></div></div>'+
+ card('▲ MELHOR PONTO SIMULADO NA ALTA',bestUp,'var(--green)','up')+
+ card('▼ MELHOR PONTO SIMULADO NA BAIXA',bestDown,'var(--red)','down')+
+ '<div class="hint">PnL combinado = PnL da Pool + PnL do Short. O Short é simulado como '+fmt(short,8)+' '+token+' aberto ao preço de entrada '+usd(p0)+'. Não inclui APR, taxas coletadas, funding, taxas de execução ou slippage.</div>'+
+ '<div class="warn">Consistência da liquidez inferida: '+fmt(consistency,2)+'% de diferença entre as estimativas calculadas pelo lado do token e pelo lado da stablecoin. '+(consistency>5?'Os dados/range podem não representar exatamente uma posição matemática de liquidez concentrada; resultado com maior incerteza.':'Os valores estão relativamente próximos, mas ainda são uma aproximação e não substituem os dados de liquidez exatos da DEX.')+'</div>';
+}
 function renderDynamic(){
  const q=Number($('dynPoolQty').value),p=Number($('dynPrice').value),s=Number($('dynShortQty').value);
  const el=$('dynResult');
