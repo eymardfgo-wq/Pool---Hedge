@@ -90,7 +90,7 @@ function render(){
  '<div class="row"><span>Range superior</span><b>'+fmt(high,8)+'</b></div>'+
  (warning?'<div class="warn">'+warning+'</div>':'<div class="hint">Preço atual dentro do range informado.</div>');
 }
-['token','stable','tokenQty','stableQty','price','apr','feeTier','rangeHigh','rangeLow'].forEach(id=>$(id).addEventListener('input',render));
+['token','stable','tokenQty','stableQty','price','apr','feeTier','rangeHigh','rangeLow'].forEach(id=>$(id).addEventListener('input',()=>{render();renderExitMap();}));
 render();
 renderExitMap();
 function renderExitMap(){
