@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101827"><meta name="description" content="Pool + Hedge V5.8 - projeção, hedge dinâmico e mapa de saída">
-<title>Pool + Hedge V5.8</title>
+<meta name="theme-color" content="#101827"><meta name="description" content="Pool + Hedge V5.9 - projeção, hedge dinâmico e mapa de saída">
+<title>Pool + Hedge V5.9</title>
 <style>
 :root{color-scheme:dark;--panel:#121d2e;--panel2:#1a2940;--line:#2a3a52;--text:#f2f6fc;--muted:#9aabc1;--green:#36d399;--red:#fb7185;--blue:#75a7ff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101c30,#080e19 65%);font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);padding:14px 11px 34px}main{max-width:700px;margin:auto}
@@ -15,7 +15,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 </style>
 </head>
 <body><main>
-<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Projeção anual + hedge inicial + mapa de saída otimizado · V5.8</div></div><span class="tag">SUGGEST · MANUAL</span></header>
+<header class="head"><div><div class="brand">◈ Pool + Hedge</div><div class="muted">Projeção anual + hedge inicial + mapa de saída otimizado · V5.9</div></div><span class="tag">SUGGEST · MANUAL</span></header>
 <section class="panel">
 <div class="eyebrow">1 · DADOS COPIADOS DA POOL</div>
 <div class="grid"><div><label>Token volátil</label><input id="token" value="ZEC" autocomplete="off"></div><div><label>Stablecoin</label><input id="stable" value="USDC" autocomplete="off"></div></div>
@@ -45,7 +45,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input{wi
 <div class="hint">O capital total é calculado pela soma do valor do token volátil em USD com o valor da stablecoin, considerada pareada em US$ 1. APR, Tier Fee e range são apresentados como dados da posição; não alteram o tamanho do hedge inicial.</div>
 <div class="hint">A margem é uma estimativa inicial. Reserve margem adicional; alavancagem 2x não elimina risco de liquidação nem outros riscos da estratégia.</div>
 </section>
-<div class="footer">Pool + Hedge V5.8 · Assistente de cálculo manual, não recomendação financeira.</div>
+<div class="footer">Pool + Hedge V5.9 · Assistente de cálculo manual, não recomendação financeira.</div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -100,9 +100,11 @@ function renderExitMap(){
  const consistency=Number.isFinite(Ltoken)&&Number.isFinite(Lstable)&&Math.max(Ltoken,Lstable)>0?Math.abs(Ltoken-Lstable)/Math.max(Ltoken,Lstable)*100:NaN;
  const compositionWarning=Number.isFinite(consistency)&&consistency>5;
  const initialCapital=q0*p0+q1;
- if(compositionWarning){out.innerHTML='<div class="warn"><strong>MAPA SUSPENSO — composição da Pool inconsistente.</strong><br>Divergência estimada de '+fmt(consistency,2)+'%, acima do limite de 5%. O otimizador foi bloqueado para evitar resultados potencialmente enganosos.<br><br><strong>Liquidez inferida pelo token:</strong> '+fmt(Ltoken,6)+'<br><strong>Liquidez inferida pela stablecoin:</strong> '+fmt(Lstable,6)+'<br><br>Confira na DEX o preço atual, range e as quantidades reais de ambos os ativos. Corrija os dados para a divergência ficar em até 5%.</div>';return;}
+ // V5.9 diagnostic no longer suspends the map; calculation is normalized by entry capital.
  // CLMM: use quantity-derived liquidity estimates, then value changes relative to modeled entry value.
- const L=(Number.isFinite(Ltoken)&&Number.isFinite(Lstable))?(Ltoken+Lstable)/2:(Number.isFinite(Ltoken)?Ltoken:Lstable);
+ // V5.9: normalize liquidity from total entry capital, avoiding average of inconsistent token-side estimates.
+ const valuePerL=p0*(1/sqrtP-1/sqrtHi)+(sqrtP-sqrtLo);
+ const L=initialCapital/valuePerL;
  function poolAt(price){const sp=Math.sqrt(price);if(price<=lo)return{volatile:L*(1/sqrtLo-1/sqrtHi),stable:0};if(price>=hi)return{volatile:0,stable:L*(sqrtHi-sqrtLo)};return{volatile:L*(1/sp-1/sqrtHi),stable:L*(sp-sqrtLo)}}
  const entryComp=poolAt(p0),modelEntryValue=initialCapital;
  function combinedAt(price){const a=poolAt(price),poolVal=a.volatile*price+a.stable,poolPnl=poolVal-modelEntryValue,shortPnl=short*(p0-price),gross=poolPnl+shortPnl,net=gross+fees+funding;return{price,percent:(price/p0-1)*100,poolVal,poolPnl,shortPnl,gross,fees,funding,net,volatile:a.volatile,stable:a.stable}}
@@ -113,7 +115,7 @@ function renderExitMap(){
  const overall=bestUp.net>=bestDown.net?bestUp:bestDown,overallDir=bestUp.net>=bestDown.net?'ALTA':'BAIXA';
  out.innerHTML='<div class="result"><div class="muted">MELHOR RESULTADO ENTRE OS DOIS CENÁRIOS</div><div class="big '+(overall.net>=0?'green':'')+'">'+usd(overall.net)+'</div><div class="subvalue">Saída simulada mais favorável na '+overallDir+' · '+usd(overall.price)+' / '+token+'</div></div>'+
  card('▲ MELHOR SAÍDA SIMULADA NA ALTA',bestUp,'var(--green)')+card('▼ MELHOR SAÍDA SIMULADA NA BAIXA',bestDown,'var(--red)')+
- '<div class="hint">Modelo CLMM V5.8: liquidez inferida pelas quantidades de token e stablecoin. PnL da Pool = valor simulado menos o valor matemático modelado na entrada. Soma PnL da Pool + PnL do Short + taxas + funding.</div>'+
- '<div class="warn">Diagnóstico de composição: '+(Number.isFinite(consistency)?fmt(consistency,2)+'% de divergência entre liquidez inferida pelas quantidades de tokens. ':'não foi possível estimar a divergência.')+' '+(compositionWarning?'Os dados não correspondem exatamente à composição matemática da faixa. O mapa continua disponível, usando o capital inicial informado como base do PnL; composição simulada aproximada.':'Composição aproximada; confira quantidades e faixa na DEX.')+'</div>';
+ '<div class="hint">Modelo CLMM V5.9: liquidez inferida pelas quantidades de token e stablecoin. PnL da Pool = valor simulado menos o valor matemático modelado na entrada. Soma PnL da Pool + PnL do Short + taxas + funding.</div>'+
+ '<div class="warn">Diagnóstico de composição: '+(Number.isFinite(consistency)?fmt(consistency,2)+'% de divergência entre liquidez inferida pelas quantidades de tokens. ':'não foi possível estimar a divergência.')+' '+(compositionWarning?'Divergência acima de 5%. O mapa continua disponível usando liquidez normalizada pelo capital inicial. A composição simulada pode diferir dos tokens reais da DEX.':'Liquidez normalizada pelo capital inicial; composição simulada pode diferir dos tokens reais da DEX.')+'</div>';
 }
 </script></body></html>
