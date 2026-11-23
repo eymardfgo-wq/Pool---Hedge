@@ -98,6 +98,7 @@ function renderExitMap(){
  const tokenCoeff=(1/sqrtP-1/sqrtHi),stableCoeff=(sqrtP-sqrtLo);
  const Ltoken=tokenCoeff>0?q0/tokenCoeff:NaN,Lstable=stableCoeff>0?q1/stableCoeff:NaN;
  const consistency=Number.isFinite(Ltoken)&&Number.isFinite(Lstable)&&Math.max(Ltoken,Lstable)>0?Math.abs(Ltoken-Lstable)/Math.max(Ltoken,Lstable)*100:NaN;
+ if(Number.isFinite(consistency)&&consistency>5){out.innerHTML='<div class="warn"><strong>MAPA SUSPENSO: composição da Pool inconsistente.</strong> Divergência de liquidez entre as quantidades informadas: '+fmt(consistency,2)+'%. O simulador não gera preços de saída enquanto a divergência for superior a 5%. Copie as quantidades reais da posição na DEX e confira preço/range.</div>';return;}
  const initialCapital=q0*p0+q1;
  // CLMM: use quantity-derived liquidity estimates, then value changes relative to modeled entry value.
  const L=(Number.isFinite(Ltoken)&&Number.isFinite(Lstable))?(Ltoken+Lstable)/2:(Number.isFinite(Ltoken)?Ltoken:Lstable);
