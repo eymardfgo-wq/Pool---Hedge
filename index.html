@@ -91,23 +91,26 @@ renderExitMap();
 function renderExitMap(){
  const q0=n('tokenQty'),q1=n('stableQty'),p0=n('price'),loInput=n('rangeLow'),hiInput=n('rangeHigh'),short=Number($('exitShortQty').value),fees=Number($('exitFees').value)||0,funding=Number($('exitFunding').value)||0;
  const out=$('exitMapResult'),token=$('token').value.trim()||'TOKEN',stable=$('stable').value.trim()||'STABLE';
- if(!(q0>0&&q1>=0&&p0>0&&loInput>0&&hiInput>0&&loInput!==hiInput&&short>=0)){out.innerHTML='<div class="warn">Confira quantidades, preço, range e SHORT real informado para calcular o mapa.</div>';return;}
+ if(!(q0>0&&q1>=0&&p0>0&&loInput>0&&hiInput>0&&loInput!==hiInput&&short>=0&&Number.isFinite(short))){out.innerHTML='<div class="warn">Confira quantidades, preço, range e SHORT real informado para calcular o mapa.</div>';return;}
  const lo=Math.min(loInput,hiInput),hi=Math.max(loInput,hiInput);
- if(p0<=lo||p0>=hi){out.innerHTML='<div class="warn">O preço inicial precisa estar dentro do range informado para este modelo. Confira os dados da Pool.</div>';return;}
+ if(p0<=lo||p0>=hi){out.innerHTML='<div class="warn">Para este modelo, o preço inicial deve estar dentro do range informado. Confira os dados da Pool.</div>';return;}
  const sqrtP=Math.sqrt(p0),sqrtLo=Math.sqrt(lo),sqrtHi=Math.sqrt(hi);
- const L0=q0/(1/sqrtP-1/sqrtHi),L1=q1/(sqrtP-sqrtLo),consistency=Math.abs(L0-L1)/Math.max(L0,L1)*100,initialCapital=q0*p0+q1;
- if(consistency>5){out.innerHTML='<div class="warn"><strong>SIMULAÇÃO BLOQUEADA — COMPOSIÇÃO INCONSISTENTE</strong><br>Os valores de token e stablecoin informados não correspondem ao mesmo nível de liquidez/range. O modelo antigo fazia a média dessas estimativas e podia gerar PnL artificial, inclusive perto do preço inicial.<br><br>Liquidez estimada pelo token: '+fmt(L0,4)+'<br>Liquidez estimada pela stablecoin: '+fmt(L1,4)+'<br>Divergência: '+fmt(consistency,2)+'% (limite permitido: 5%)<br><br>Confira e copie novamente quantidades, preço e limites diretamente da DEX. O mapa de saída só será liberado quando os dados forem consistentes.</div>';return;}
- const L=(L0+L1)/2;
+ const tokenCoeff=(1/sqrtP-1/sqrtHi),stableCoeff=(sqrtP-sqrtLo);
+ const Ltoken=tokenCoeff>0?q0/tokenCoeff:NaN,Lstable=stableCoeff>0?q1/stableCoeff:NaN;
+ const consistency=Number.isFinite(Ltoken)&&Number.isFinite(Lstable)&&Math.max(Ltoken,Lstable)>0?Math.abs(Ltoken-Lstable)/Math.max(Ltoken,Lstable)*100:NaN;
+ const initialCapital=q0*p0+q1;
+ // Calibra a liquidez pelo capital inicial total, preservando o valor de entrada.
+ const L=initialCapital/(tokenCoeff*p0+stableCoeff);
  function poolAt(price){const sp=Math.sqrt(price);if(price<=lo)return{volatile:L*(1/sqrtLo-1/sqrtHi),stable:0};if(price>=hi)return{volatile:0,stable:L*(sqrtHi-sqrtLo)};return{volatile:L*(1/sp-1/sqrtHi),stable:L*(sp-sqrtLo)}}
- const entryPool=poolAt(p0),modelEntryValue=entryPool.volatile*p0+entryPool.stable;
- function combinedAt(price){const a=poolAt(price),poolVal=a.volatile*price+a.stable,poolPnl=poolVal-modelEntryValue,shortPnl=short*(p0-price),gross=poolPnl+shortPnl,net=gross+fees+funding;return{price,percent:(price/p0-1)*100,poolVal,poolPnl,shortPnl,gross,fees,funding,net,volatile:a.volatile,stable:a.stable}}
- const steps=2400,minP=p0*.1,maxP=p0*3;let bestUp=null,bestDown=null;
+ function combinedAt(price){const a=poolAt(price),poolVal=a.volatile*price+a.stable,poolPnl=poolVal-initialCapital,shortPnl=short*(p0-price),gross=poolPnl+shortPnl,net=gross+fees+funding;return{price,percent:(price/p0-1)*100,poolVal,poolPnl,shortPnl,gross,fees,funding,net,volatile:a.volatile,stable:a.stable}}
+ const steps=3000,minP=p0*.1,maxP=p0*3;let bestUp=null,bestDown=null;
  for(let i=0;i<=steps;i++){const px=minP+(maxP-minP)*i/steps,r=combinedAt(px);if(px>p0&&(!bestUp||r.net>bestUp.net))bestUp=r;if(px<p0&&(!bestDown||r.net>bestDown.net))bestDown=r}
+ if(!bestUp||!bestDown){out.innerHTML='<div class="warn">Não foi possível gerar pontos de saída para as duas direções. Confira preço e range.</div>';return;}
  const card=(title,r,color)=>'<div class="result" style="margin:10px 0"><div style="font-weight:800;color:'+color+'">'+title+'</div><div class="big" style="color:'+color+'">'+(r.net>=0?'+':'')+usd(r.net)+'</div><div class="subvalue">Resultado líquido estimado · '+(r.net/initialCapital*100).toFixed(2)+'% do capital inicial</div><div style="font-size:20px;font-weight:800;margin-top:8px">Preço de saída: '+usd(r.price)+' / '+token+'</div><div class="muted">'+(r.percent>=0?'+':'')+fmt(r.percent,2)+'% de variação desde a entrada</div><div class="divider"></div><div class="row"><span>Valor estimado da Pool</span><b>'+usd(r.poolVal)+'</b></div><div class="row"><span>PnL da Pool</span><b>'+usd(r.poolPnl)+'</b></div><div class="row"><span>PnL do Short</span><b>'+usd(r.shortPnl)+'</b></div><div class="row"><span>PnL combinado (antes taxas/funding)</span><b>'+usd(r.gross)+'</b></div><div class="row"><span>Taxas acumuladas</span><b>'+usd(r.fees)+'</b></div><div class="row"><span>Funding líquido</span><b>'+usd(r.funding)+'</b></div><div class="row"><span><strong>RESULTADO LÍQUIDO</strong></span><b style="color:'+color+'">'+usd(r.net)+'</b></div><div class="divider"></div><div class="row"><span>Composição estimada da Pool</span><b>'+fmt(r.volatile,8)+' '+token+'<div class="subvalue">'+usd(r.volatile*r.price)+'</div>'+fmt(r.stable,6)+' '+stable+'<div class="subvalue">'+usd(r.stable)+'</div></b></div></div>';
  const overall=bestUp.net>=bestDown.net?bestUp:bestDown,overallDir=bestUp.net>=bestDown.net?'ALTA':'BAIXA';
  out.innerHTML='<div class="result"><div class="muted">MELHOR RESULTADO ENTRE OS DOIS CENÁRIOS</div><div class="big '+(overall.net>=0?'green':'')+'">'+usd(overall.net)+'</div><div class="subvalue">Saída simulada mais favorável na '+overallDir+' · '+usd(overall.price)+' / '+token+'</div></div>'+
  card('▲ MELHOR SAÍDA SIMULADA NA ALTA',bestUp,'var(--green)')+card('▼ MELHOR SAÍDA SIMULADA NA BAIXA',bestDown,'var(--red)')+
- '<div class="hint">Cálculo em cada preço: PnL da Pool + PnL do Short real informado + taxas acumuladas + funding líquido. O otimizador busca o maior resultado líquido em cada direção, mesmo que seja negativo — nesse caso, mostra o cenário menos desfavorável.</div>'+
- '<div class="warn">Consistência da liquidez inferida: '+fmt(consistency,2)+'% de diferença entre estimativas baseadas nos tokens. '+(consistency>5?'Os dados podem não representar exatamente a posição matemática da DEX; resultado com maior incerteza.':'Os valores são aproximados e não substituem dados exatos de liquidez.')+'</div>';
+ '<div class="hint">Modelo CLMM: liquidez estimada calibrada pelo capital inicial total informado. Em cada preço: valor da Pool − capital inicial + PnL do Short + taxas + funding. O otimizador procura o maior resultado líquido em cada direção.</div>'+
+ '<div class="warn">Diagnóstico de composição (não bloqueia): '+(Number.isFinite(consistency)?fmt(consistency,2)+'% de divergência entre liquidez inferida pelas quantidades de tokens. ':'não foi possível estimar a divergência.')+' '+(Number.isFinite(consistency)&&consistency>5?'Os dados de quantidade não correspondem exatamente à composição matemática da faixa; o PnL usa o capital total como base, para não distorcer o valor inicial.':'A composição é aproximada. Confira quantidades e faixa na DEX.')+'</div>';
 }
 </script></body></html>
