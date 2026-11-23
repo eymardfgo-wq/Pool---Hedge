@@ -100,10 +100,9 @@ function renderExitMap(){
  const consistency=Number.isFinite(Ltoken)&&Number.isFinite(Lstable)&&Math.max(Ltoken,Lstable)>0?Math.abs(Ltoken-Lstable)/Math.max(Ltoken,Lstable)*100:NaN;
  const compositionWarning=Number.isFinite(consistency)&&consistency>5;
  const initialCapital=q0*p0+q1;
- if(compositionWarning){
-  out.innerHTML='<div class="warn"><strong>MAPA BLOQUEADO — COMPOSIÇÃO DA POOL INCONSISTENTE</strong><br>Divergência de '+fmt(consistency,2)+'% entre as liquidez inferidas pelas quantidades de tokens. Acima do limite de 5%, o otimizador não calcula pontos de saída para evitar resultados potencialmente enganosos.<br><br>Confira na DEX as quantidades reais de token e stablecoin, preço atual e limites do range. Corrija os dados até a divergência ficar em 5% ou menos.</div>';
-  return;
- }
+ // V6.1 FIX: divergência de composição é apenas diagnóstico; mapa usa capital de entrada normalizado.
+ // Não bloquear a simulação quando L inferida dos dois lados diverge.
+
  // V6.0 diagnostic no longer suspends the map; calculation is normalized by entry capital.
  // CLMM: use quantity-derived liquidity estimates, then value changes relative to modeled entry value.
  // V6.0: normalize liquidity from total entry capital, avoiding average of inconsistent token-side estimates.
