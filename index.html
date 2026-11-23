@@ -95,10 +95,6 @@ function renderExitMap(){
  const lo=Math.min(loInput,hiInput),hi=Math.max(loInput,hiInput);
  if(p0<=lo||p0>=hi){out.innerHTML='<div class="warn">Para este modelo, o preço inicial deve estar dentro do range informado. Confira os dados da Pool.</div>';return;}
  const sqrtP=Math.sqrt(p0),sqrtLo=Math.sqrt(lo),sqrtHi=Math.sqrt(hi);
- const tokenCoeff=(1/sqrtP-1/sqrtHi),stableCoeff=(sqrtP-sqrtLo);
- const Ltoken=tokenCoeff>0?q0/tokenCoeff:NaN,Lstable=stableCoeff>0?q1/stableCoeff:NaN;
- const consistency=Number.isFinite(Ltoken)&&Number.isFinite(Lstable)&&Math.max(Ltoken,Lstable)>0?Math.abs(Ltoken-Lstable)/Math.max(Ltoken,Lstable)*100:NaN;
- const compositionWarning=Number.isFinite(consistency)&&consistency>5;
  const initialCapital=q0*p0+q1;
  // V6.1 FIX: divergência de composição é apenas diagnóstico; mapa usa capital de entrada normalizado.
  // Não bloquear a simulação quando L inferida dos dois lados diverge.
@@ -119,6 +115,6 @@ function renderExitMap(){
  out.innerHTML='<div class="result"><div class="muted">MELHOR RESULTADO ENTRE OS DOIS CENÁRIOS</div><div class="big '+(overall.net>=0?'green':'')+'">'+usd(overall.net)+'</div><div class="subvalue">Saída simulada mais favorável na '+overallDir+' · '+usd(overall.price)+' / '+token+'</div></div>'+
  card('▲ MELHOR SAÍDA SIMULADA NA ALTA',bestUp,'var(--green)')+card('▼ MELHOR SAÍDA SIMULADA NA BAIXA',bestDown,'var(--red)')+
  '<div class="hint">Modelo CLMM V6.1: liquidez normalizada pelo capital total informado na entrada. PnL da Pool = valor simulado menos capital inicial. Soma PnL da Pool + PnL do Short + taxas + funding.</div>'+
- '<div class="warn">Diagnóstico de composição: '+(Number.isFinite(consistency)?fmt(consistency,2)+'% de divergência entre liquidez inferida pelas quantidades de tokens. ':'não foi possível estimar a divergência.')+' '+(compositionWarning?'Divergência acima de 5%. O mapa continua disponível usando liquidez normalizada pelo capital inicial. A composição simulada pode diferir dos tokens reais da DEX.':'Liquidez normalizada pelo capital inicial; composição simulada pode diferir dos tokens reais da DEX.')+'</div>';
+;
 }
 </script></body></html>
