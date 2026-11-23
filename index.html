@@ -98,12 +98,12 @@ function renderExitMap(){
  const tokenCoeff=(1/sqrtP-1/sqrtHi),stableCoeff=(sqrtP-sqrtLo);
  const Ltoken=tokenCoeff>0?q0/tokenCoeff:NaN,Lstable=stableCoeff>0?q1/stableCoeff:NaN;
  const consistency=Number.isFinite(Ltoken)&&Number.isFinite(Lstable)&&Math.max(Ltoken,Lstable)>0?Math.abs(Ltoken-Lstable)/Math.max(Ltoken,Lstable)*100:NaN;
- if(Number.isFinite(consistency)&&consistency>5){out.innerHTML='<div class="warn"><strong>MAPA SUSPENSO: composição da Pool inconsistente.</strong> Divergência de liquidez entre as quantidades informadas: '+fmt(consistency,2)+'%. O simulador não gera preços de saída enquanto a divergência for superior a 5%. Copie as quantidades reais da posição na DEX e confira preço/range.</div>';return;}
+ const compositionWarning=Number.isFinite(consistency)&&consistency>5;
  const initialCapital=q0*p0+q1;
  // CLMM: use quantity-derived liquidity estimates, then value changes relative to modeled entry value.
  const L=(Number.isFinite(Ltoken)&&Number.isFinite(Lstable))?(Ltoken+Lstable)/2:(Number.isFinite(Ltoken)?Ltoken:Lstable);
  function poolAt(price){const sp=Math.sqrt(price);if(price<=lo)return{volatile:L*(1/sqrtLo-1/sqrtHi),stable:0};if(price>=hi)return{volatile:0,stable:L*(sqrtHi-sqrtLo)};return{volatile:L*(1/sp-1/sqrtHi),stable:L*(sp-sqrtLo)}}
- const entryComp=poolAt(p0),modelEntryValue=entryComp.volatile*p0+entryComp.stable;
+ const entryComp=poolAt(p0),modelEntryValue=initialCapital;
  function combinedAt(price){const a=poolAt(price),poolVal=a.volatile*price+a.stable,poolPnl=poolVal-modelEntryValue,shortPnl=short*(p0-price),gross=poolPnl+shortPnl,net=gross+fees+funding;return{price,percent:(price/p0-1)*100,poolVal,poolPnl,shortPnl,gross,fees,funding,net,volatile:a.volatile,stable:a.stable}}
  const steps=3000,minP=p0*.1,maxP=p0*3;let bestUp=null,bestDown=null;
  for(let i=0;i<=steps;i++){const px=minP+(maxP-minP)*i/steps,r=combinedAt(px);if(px>p0&&(!bestUp||r.net>bestUp.net))bestUp=r;if(px<p0&&(!bestDown||r.net>bestDown.net))bestDown=r}
@@ -113,6 +113,6 @@ function renderExitMap(){
  out.innerHTML='<div class="result"><div class="muted">MELHOR RESULTADO ENTRE OS DOIS CENÁRIOS</div><div class="big '+(overall.net>=0?'green':'')+'">'+usd(overall.net)+'</div><div class="subvalue">Saída simulada mais favorável na '+overallDir+' · '+usd(overall.price)+' / '+token+'</div></div>'+
  card('▲ MELHOR SAÍDA SIMULADA NA ALTA',bestUp,'var(--green)')+card('▼ MELHOR SAÍDA SIMULADA NA BAIXA',bestDown,'var(--red)')+
  '<div class="hint">Modelo CLMM V5.7: liquidez inferida pelas quantidades de token e stablecoin. PnL da Pool = valor simulado menos o valor matemático modelado na entrada. Soma PnL da Pool + PnL do Short + taxas + funding.</div>'+
- '<div class="warn">Diagnóstico de composição: '+(Number.isFinite(consistency)?fmt(consistency,2)+'% de divergência entre liquidez inferida pelas quantidades de tokens. ':'não foi possível estimar a divergência.')+' '+(Number.isFinite(consistency)&&consistency>5?'Os dados de quantidade não correspondem exatamente à composição matemática da faixa; o PnL usa o capital total como base, para não distorcer o valor inicial.':'A composição é aproximada. Confira quantidades e faixa na DEX.')+'</div>';
+ '<div class="warn">Diagnóstico de composição: '+(Number.isFinite(consistency)?fmt(consistency,2)+'% de divergência entre liquidez inferida pelas quantidades de tokens. ':'não foi possível estimar a divergência.')+' '+(compositionWarning?'Os dados não correspondem exatamente à composição matemática da faixa. O mapa continua disponível, usando o capital inicial informado como base do PnL; composição simulada aproximada.':'Composição aproximada; confira quantidades e faixa na DEX.')+'</div>';
 }
 </script></body></html>
